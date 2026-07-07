@@ -39,7 +39,7 @@ export default function UsersPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
         <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: '#F0EBF8' }}>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: '#F0E6FA' }}>
             <UsersIcon size={20} color="#6B2D82" />
@@ -80,6 +80,7 @@ export default function UsersPage() {
         <p className="text-center text-gray-400 py-16">Loading guests…</p>
       ) : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: '#F0EBF8' }}>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: '#FAF8FC' }}>
@@ -111,6 +112,7 @@ export default function UsersPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

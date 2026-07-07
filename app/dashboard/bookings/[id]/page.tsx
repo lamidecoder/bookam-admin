@@ -191,7 +191,7 @@ export default function BookingDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border overflow-hidden flex" style={{ borderColor: '#F0EBF8' }}>
             <div className="w-56 h-40 bg-gradient-to-br from-orange-200 to-purple-300 flex-shrink-0" />
@@ -211,7 +211,7 @@ export default function BookingDetailPage() {
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
             <h3 className="text-lg font-bold text-gray-900 mb-5">Booking Details</h3>
-            <div className="grid grid-cols-2 gap-y-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 text-sm">
               <div><p className="text-gray-400 mb-1">Check In</p><p className="font-bold text-gray-900">{booking.check_in}</p></div>
               <div><p className="text-gray-400 mb-1">Payment Method</p><p className="font-bold text-gray-900 flex items-center gap-1"><Building2 size={14} color="#3A7BD5" /> {booking.payment_method ?? 'Paystack'}</p></div>
               <div><p className="text-gray-400 mb-1">Checkout</p><p className="font-bold text-gray-900">{booking.check_out}</p></div>

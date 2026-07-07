@@ -66,7 +66,7 @@ export default function BookingsPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-5 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
         <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: '#F0EBF8' }}>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#F0E6FA' }}>
             <ClipboardList size={20} color="#6B2D82" />
@@ -126,6 +126,7 @@ export default function BookingsPage() {
         ) : rows.length === 0 ? (
           <p className="text-center text-gray-400 py-16">No bookings match your search.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: '#FAF8FC' }}>
@@ -152,6 +153,7 @@ export default function BookingsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
         <div className="flex items-center justify-between px-5 py-4 border-t" style={{ borderColor: '#F0EBF8' }}>
           <p className="text-sm text-gray-500">

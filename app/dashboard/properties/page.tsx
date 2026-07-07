@@ -100,7 +100,7 @@ export default function PropertiesPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((p) => (
           <div key={p.id} className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: '#F0EBF8' }}>
             <div className="relative h-44 w-full bg-gray-100">

@@ -78,11 +78,11 @@ export default function AddPropertyPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
             <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>Basic Info</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">PROPERTY NAME</label>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Eko Atlantic Luxury Suite" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
@@ -96,7 +96,7 @@ export default function AddPropertyPage() {
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">AREA (LAGOS)</label>
                 <input value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. Victoria Island" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
@@ -114,7 +114,7 @@ export default function AddPropertyPage() {
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
             <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>Pricing</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">
                   {type === 'Event Center' ? 'FLAT RATE PER BOOKING (₦)' : 'NIGHTLY RATE (₦)'}
@@ -126,7 +126,7 @@ export default function AddPropertyPage() {
                 <input value={serviceFee} onChange={(e) => setServiceFee(e.target.value)} placeholder="0.00" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">MINIMUM STAY (NIGHTS)</label>
                 <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200">
@@ -152,7 +152,7 @@ export default function AddPropertyPage() {
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
             <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>Amenities</h3>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {AMENITY_OPTIONS.map((a) => {
                 const active = amenities.includes(a);
                 return (

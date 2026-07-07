@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         {STATS.map((s, i) => {
           const Icon = s.icon;
           return (
@@ -173,7 +173,7 @@ export default function AnalyticsPage() {
         })}
       </div>
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
         <div className="col-span-2 bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Revenue Over Time</h3>
@@ -232,7 +232,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-5 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
         <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
           <h3 className="text-lg font-bold text-gray-900 mb-5">Occupancy Rate by Property</h3>
           {occupancy.length === 0 ? (
@@ -269,7 +269,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
           <h3 className="text-lg font-bold text-gray-900 mb-4">Top Performing Properties</h3>
           {topProperties.length === 0 ? (

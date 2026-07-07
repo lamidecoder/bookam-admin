@@ -139,7 +139,7 @@ export default function TransactionsPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
         <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: '#F0EBF8' }}>
           <p className="text-2xl font-bold text-gray-900">₦{totalRevenue.toLocaleString()}</p>
           <p className="text-sm text-gray-500 mt-1">Total Revenue</p>
@@ -175,6 +175,7 @@ export default function TransactionsPage() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: '#F0EBF8' }}>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: '#FAF8FC' }}>
@@ -209,6 +210,7 @@ export default function TransactionsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

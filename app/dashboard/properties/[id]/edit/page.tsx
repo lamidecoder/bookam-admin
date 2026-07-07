@@ -129,11 +129,11 @@ export default function EditPropertyPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
             <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>General Information</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">PROPERTY NAME</label>
                 <input value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
@@ -151,7 +151,7 @@ export default function EditPropertyPage() {
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
             <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>Pricing &amp; Policy</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">PRICE PER NIGHT (₦)</label>
                 <input value={pricePerNight} onChange={(e) => setPricePerNight(e.target.value)} className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />

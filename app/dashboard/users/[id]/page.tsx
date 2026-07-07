@@ -136,7 +136,7 @@ export default function GuestProfilePage() {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border p-5 text-center" style={{ borderColor: '#F0EBF8' }}>
             <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-2xl font-bold" style={{ backgroundColor: '#6B2D82' }}>
@@ -170,6 +170,7 @@ export default function GuestProfilePage() {
             {bookings.length === 0 ? (
               <p className="text-sm text-gray-400 py-6 text-center">No bookings yet.</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-gray-400 text-xs">
@@ -192,6 +193,7 @@ export default function GuestProfilePage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>

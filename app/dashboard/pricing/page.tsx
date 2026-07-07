@@ -313,13 +313,13 @@ function CalendarOverrideInner() {
         </div>
       )}
 
-      <div className="grid grid-cols-[1fr_320px] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
         <div className="bg-white rounded-2xl border p-5" style={{ borderColor: '#F0EBF8' }}>
           {loading ? (
             <p className="text-center text-gray-400 py-20">Loading calendar…</p>
           ) : (
             <>
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((w) => (
                   <div key={w} className="text-center text-xs font-semibold text-gray-400 py-1">{w}</div>
                 ))}
@@ -331,7 +331,7 @@ function CalendarOverrideInner() {
                       key={i}
                       onClick={() => handleDayClick(day)}
                       disabled={day.outOfMonth}
-                      className="aspect-square rounded-xl p-2 text-left text-sm flex flex-col items-start"
+                      className="aspect-square rounded-lg sm:rounded-xl p-1 sm:p-2 text-left text-xs sm:text-sm flex flex-col items-start"
                       style={{ backgroundColor: style.bg, color: style.text, boxShadow: isPicked ? 'inset 0 0 0 2px #C9A84C' : undefined }}
                     >
                       <span className="font-semibold">{day.date}</span>

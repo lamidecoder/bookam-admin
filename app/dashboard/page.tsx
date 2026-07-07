@@ -94,7 +94,7 @@ export default function OverviewPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-4 gap-5 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
             {STATS_CARDS.map((s, i) => {
               const Icon = s.icon;
               return (
@@ -109,13 +109,14 @@ export default function OverviewPage() {
             })}
           </div>
 
-          <div className="grid grid-cols-3 gap-5 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
             <div className="col-span-2 bg-white rounded-2xl p-6 border" style={{ borderColor: '#F0EBF8' }}>
               <h3 className="text-lg font-bold text-gray-900">Recent Bookings</h3>
               <p className="text-sm text-gray-500 mb-4">Most recent activity, live</p>
               {recent.length === 0 ? (
                 <p className="text-sm text-gray-400 py-6 text-center">No bookings yet.</p>
               ) : (
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-gray-400 text-xs">
@@ -142,6 +143,7 @@ export default function OverviewPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
 
@@ -168,7 +170,7 @@ export default function OverviewPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div className="bg-white rounded-2xl p-6 border" style={{ borderColor: '#F0EBF8' }}>
               <h3 className="text-lg font-bold text-gray-900 mb-4">Today&apos;s Check-ins</h3>
               {checkinsToday.length === 0 ? (
