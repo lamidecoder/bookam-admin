@@ -6,7 +6,7 @@ import {
   ArrowLeft, Download, MapPin, Phone, Mail,
   MessageSquare, PhoneCall, Building2, X, AlertTriangle, Loader2,
 } from 'lucide-react';
-import { getBookingById, adminCancelBooking, errorMessage, type DbBooking } from '@/lib/api';
+import { getBookingById, adminCancelBooking, getBookingNotes, addBookingNote, errorMessage, type DbBooking, type BookingNote } from '@/lib/api';
 
 function CancelBookingModal({
   booking,
@@ -123,7 +123,9 @@ export default function BookingDetailPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showCancel, setShowCancel] = useState(false);
   const [note, setNote] = useState('');
-  const [localNotes, setLocalNotes] = useState<string[]>([]);
+  const [notes, setNotes] = useState<BookingNote[]>([]);
+  const [notesError, setNotesError] = useState<string | null>(null);
+  const [savingNote, setSavingNote] = useState(false);
 
   function load() {
     setLoadError(null);
@@ -131,14 +133,25 @@ export default function BookingDetailPage() {
       .then(setBooking)
       .catch((e) => setLoadError(errorMessage(e)))
       .finally(() => setLoading(false));
+    getBookingNotes(id)
+      .then(setNotes)
+      .catch((e) => setNotesError(errorMessage(e)));
   }
   // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount; repo has no Suspense/use() data layer yet
   useEffect(load, [id]);
 
-  function saveNote() {
+  async function saveNote() {
     if (!note.trim()) return;
-    setLocalNotes((cur) => [note, ...cur]);
-    setNote('');
+    setSavingNote(true);
+    try {
+      const created = await addBookingNote(id, note.trim());
+      setNotes((cur) => [created, ...cur]);
+      setNote('');
+    } catch (e) {
+      setNotesError(errorMessage(e));
+    } finally {
+      setSavingNote(false);
+    }
   }
 
   if (loading) {
@@ -264,11 +277,16 @@ export default function BookingDetailPage() {
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
             <h3 className="font-bold text-gray-900 mb-3">Internal Notes</h3>
-            <p className="text-xs text-gray-400 mb-3">
-              Not yet saved to the database — these stay only for this browser session. Ask if you want this persisted properly.
-            </p>
-            {localNotes.map((n, i) => (
-              <div key={i} className="rounded-lg p-3 text-sm text-gray-600 mb-3" style={{ backgroundColor: '#F8F5FA' }}>{n}</div>
+            {notesError && (
+              <div className="rounded-lg p-3 text-sm mb-3" style={{ backgroundColor: '#FEF2F2', color: '#D94F4F' }}>{notesError}</div>
+            )}
+            {notes.map((n) => (
+              <div key={n.id} className="rounded-lg p-3 text-sm text-gray-600 mb-3" style={{ backgroundColor: '#F8F5FA' }}>
+                <p>{n.note}</p>
+                <p className="text-xs text-gray-400 mt-1.5">
+                  {n.created_by_name ?? 'Admin'} · {new Date(n.created_at).toLocaleString()}
+                </p>
+              </div>
             ))}
             <textarea
               value={note}
@@ -277,7 +295,9 @@ export default function BookingDetailPage() {
               rows={2}
               className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-sm resize-none mb-3"
             />
-            <button onClick={saveNote} className="w-full py-2.5 rounded-lg text-white text-sm font-semibold" style={{ backgroundColor: '#6B2D82' }}>Save Note</button>
+            <button onClick={saveNote} disabled={savingNote || !note.trim()} className="w-full py-2.5 rounded-lg text-white text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: '#6B2D82' }}>
+              {savingNote ? 'Saving…' : 'Save Note'}
+            </button>
           </div>
         </div>
       </div>

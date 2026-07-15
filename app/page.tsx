@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, Info, CheckCircle2 } from 'lucide-react';
 import { BookamLogo } from '@/components/BookamLogo';
 import { supabase } from '@/lib/supabase';
@@ -51,14 +52,8 @@ export default function AdminLoginPage() {
         <div className="absolute top-1/3 w-40 h-40 rounded-full opacity-10" style={{ backgroundColor: '#FFFFFF' }} />
 
         <div className="flex flex-col items-center text-center max-w-md relative z-10">
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-            style={{ backgroundColor: '#C9A84C' }}
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#6B2D82" strokeWidth="2" strokeLinejoin="round" fill="#6B2D82" />
-              <circle cx="12" cy="14" r="3" fill="#6B2D82" />
-            </svg>
+          <div className="mb-6" style={{ width: 72, height: 72, position: 'relative' }}>
+            <Image src="/bookam-symbol.png" alt="Bookam" fill style={{ objectFit: 'contain' }} priority />
           </div>
           <h1 className="text-3xl font-bold text-white mb-4">Bookam</h1>
           <p className="text-white/80 mb-10 leading-relaxed">

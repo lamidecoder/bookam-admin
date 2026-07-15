@@ -2,7 +2,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Upload, Search, Eye, ClipboardList, CheckCircle2, Clock, XCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getBookingsPage, errorMessage, type DbBooking } from '@/lib/api';
+import { getBookingsPage, getAllBookings, errorMessage, type DbBooking } from '@/lib/api';
+import { downloadCsv } from '@/lib/csv';
 
 const PAGE_SIZE = 10;
 
@@ -28,6 +29,35 @@ export default function BookingsPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      // The visible table is paginated 10-at-a-time, but an export should
+      // cover everything, not just whatever page you happen to be on.
+      const all = await getAllBookings();
+      downloadCsv(
+        `bookam-bookings-${new Date().toISOString().slice(0, 10)}.csv`,
+        all.map((b) => ({
+          reference: b.payment_ref ?? b.id.slice(0, 8),
+          guest_name: b.profiles?.full_name ?? '',
+          guest_email: b.profiles?.email ?? '',
+          property: b.properties?.name ?? '',
+          check_in: b.check_in,
+          check_out: b.check_out,
+          nights: b.nights,
+          total: Number(b.total),
+          status: b.status,
+          created_at: b.created_at,
+        }))
+      );
+    } catch (e) {
+      alert(errorMessage(e));
+    } finally {
+      setExporting(false);
+    }
+  }
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount; repo has no Suspense/use() data layer yet
@@ -61,8 +91,8 @@ export default function BookingsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
           <p className="text-gray-500 mt-1">Manage all guest bookings across every property.</p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-semibold" style={{ backgroundColor: '#6B2D82' }}>
-          <Upload size={16} /> Export Bookings
+        <button onClick={handleExport} disabled={exporting} className="flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: '#6B2D82' }}>
+          <Upload size={16} /> {exporting ? 'Exporting…' : 'Export Bookings'}
         </button>
       </div>
 

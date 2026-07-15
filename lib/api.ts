@@ -368,6 +368,41 @@ export async function adminCancelBooking(bookingId: string, cancellationFee: num
   return data;
 }
 
+export type BookingNote = {
+  id: string;
+  booking_id: string;
+  note: string;
+  created_by_name: string | null;
+  created_at: string;
+};
+
+export async function getBookingNotes(bookingId: string): Promise<BookingNote[]> {
+  const { data, error } = await supabase
+    .from('booking_notes')
+    .select('*')
+    .eq('booking_id', bookingId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function addBookingNote(bookingId: string, note: string): Promise<BookingNote> {
+  const { data: { user } } = await supabase.auth.getUser();
+  let adminName: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
+    adminName = profile?.full_name ?? null;
+  }
+
+  const { data, error } = await supabase
+    .from('booking_notes')
+    .insert({ booking_id: bookingId, note, created_by: user?.id, created_by_name: adminName })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export function subscribeToAllBookings(callback: (bookings: DbBooking[]) => void) {
   return supabase
     .channel('admin:bookings')

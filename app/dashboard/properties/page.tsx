@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Upload, Plus, Search, ChevronDown, Pencil, Trash2, Calendar as CalendarIcon } from 'lucide-react';
 import { getAllProperties, setPropertyActive, subscribeToAllProperties, errorMessage, type DbProperty } from '@/lib/api';
+import { downloadCsv } from '@/lib/csv';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useToast } from '@/components/ToastProvider';
 import { useConfirm } from '@/components/ConfirmProvider';
@@ -49,6 +50,25 @@ export default function PropertiesPage() {
     `${p.name} ${p.area}`.toLowerCase().includes(search.toLowerCase())
   );
 
+  function handleExport() {
+    // Exports whatever's currently visible (respects active search/filter)
+    // rather than always dumping every property regardless of what the
+    // admin is actually looking at.
+    downloadCsv(
+      `bookam-properties-${new Date().toISOString().slice(0, 10)}.csv`,
+      filtered.map((p) => ({
+        name: p.name,
+        type: p.type,
+        area: p.area,
+        price_per_night: p.price_per_night,
+        rating: p.rating ?? '',
+        verified: p.verified ? 'yes' : 'no',
+        active: p.active ? 'yes' : 'no',
+        created_at: p.created_at,
+      }))
+    );
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -57,7 +77,7 @@ export default function PropertiesPage() {
           <p className="text-gray-500 mt-1">All listings managed from one table.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-semibold text-gray-700" style={{ borderColor: '#F0EBF8' }}>
+          <button onClick={handleExport} className="flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-semibold text-gray-700" style={{ borderColor: '#F0EBF8' }}>
             <Upload size={16} /> Export List
           </button>
           <Link

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Upload, Search, Users as UsersIcon, ShieldAlert } from 'lucide-react';
 import { getAllGuests, subscribeToGuests, errorMessage, type GuestRow } from '@/lib/api';
+import { downloadCsv } from '@/lib/csv';
 import { StatusBadge } from '@/components/StatusBadge';
 
 export default function UsersPage() {
@@ -24,6 +25,20 @@ export default function UsersPage() {
   }, []);
 
   const filtered = guests.filter((g) => `${g.full_name} ${g.email}`.toLowerCase().includes(search.toLowerCase()));
+
+  function handleExport() {
+    downloadCsv(
+      `bookam-users-${new Date().toISOString().slice(0, 10)}.csv`,
+      filtered.map((g) => ({
+        full_name: g.full_name,
+        email: g.email,
+        phone: g.phone ?? '',
+        booking_count: g.bookingCount,
+        total_spent: g.totalSpent,
+        status: g.status,
+      }))
+    );
+  }
   const suspendedCount = guests.filter((g) => g.status === 'suspended').length;
   const totalSpend = guests.reduce((s, g) => s + g.totalSpent, 0);
 
@@ -34,7 +49,7 @@ export default function UsersPage() {
           <h1 className="text-3xl font-bold text-gray-900">Users</h1>
           <p className="text-gray-500 mt-1">All registered guest accounts on the platform.</p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-semibold" style={{ backgroundColor: '#6B2D82' }}>
+        <button onClick={handleExport} className="flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-semibold" style={{ backgroundColor: '#6B2D82' }}>
           <Upload size={16} /> Export Directory
         </button>
       </div>

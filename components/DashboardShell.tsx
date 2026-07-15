@@ -1,11 +1,49 @@
 'use client';
-import { useState } from 'react';
-import { Menu } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Menu, Loader2 } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { BookamLogo } from './BookamLogo';
+import { supabase } from '@/lib/supabase';
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    // This is a client-side session check, not a server-side guard —
+    // the real security boundary is Supabase RLS, which already blocks
+    // any real data from loading without a valid admin session. This
+    // just stops an unauthenticated visitor from sitting on an empty
+    // dashboard shell and instead sends them straight to login.
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      if (!data.session) {
+        router.replace('/');
+        return;
+      }
+      setChecked(true);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) router.replace('/');
+    });
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [router]);
+
+  if (!checked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#FAF7F5' }}>
+        <Loader2 size={22} className="animate-spin" style={{ color: '#6B2D82' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: '#FAF7F5' }}>
