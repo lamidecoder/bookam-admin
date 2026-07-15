@@ -5,6 +5,9 @@ import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, Info, CheckCircle2 } from 'lucide-react';
 import { BookamLogo } from '@/components/BookamLogo';
 import { supabase } from '@/lib/supabase';
+import { isAllowedAdminEmail } from '@/lib/adminAllowlist';
+
+const GENERIC_ERROR = 'Invalid email or password.';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -17,6 +20,19 @@ export default function AdminLoginPage() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Checked BEFORE any Supabase call — an email that isn't on the
+    // allowlist never even reaches auth, and gets the exact same
+    // generic error as a wrong password. This is deliberate: telling
+    // someone "that email isn't authorized" (vs "wrong password")
+    // would let an attacker enumerate which emails ARE valid admin
+    // accounts just by trying different addresses and comparing
+    // responses.
+    if (!isAllowedAdminEmail(email)) {
+      setError(GENERIC_ERROR);
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -30,13 +46,13 @@ export default function AdminLoginPage() {
 
       if (profile?.role !== 'admin') {
         await supabase.auth.signOut();
-        setError('This account does not have admin access.');
+        setError(GENERIC_ERROR);
         return;
       }
 
       router.push('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid email or password.');
+    } catch {
+      setError(GENERIC_ERROR);
     } finally {
       setLoading(false);
     }
@@ -49,11 +65,14 @@ export default function AdminLoginPage() {
         className="hidden lg:flex lg:w-[45%] flex-col justify-center items-center relative px-12"
         style={{ backgroundColor: '#6B2D82' }}
       >
-        <div className="absolute top-1/3 w-40 h-40 rounded-full opacity-10" style={{ backgroundColor: '#FFFFFF' }} />
-
         <div className="flex flex-col items-center text-center max-w-md relative z-10">
-          <div className="mb-6" style={{ width: 72, height: 72, position: 'relative' }}>
-            <Image src="/bookam-symbol.png" alt="Bookam" fill style={{ objectFit: 'contain' }} priority />
+          <div
+            className="rounded-3xl flex items-center justify-center mb-6"
+            style={{ width: 88, height: 88, backgroundColor: 'rgba(255,255,255,0.12)' }}
+          >
+            <div style={{ width: 52, height: 52, position: 'relative' }}>
+              <Image src="/bookam-symbol.png" alt="Bookam" fill style={{ objectFit: 'contain' }} priority />
+            </div>
           </div>
           <h1 className="text-3xl font-bold text-white mb-4">Bookam</h1>
           <p className="text-white/80 mb-10 leading-relaxed">
@@ -129,7 +148,7 @@ export default function AdminLoginPage() {
                 </button>
               </div>
               <div className="text-right mt-2">
-                <a href="#" className="text-sm font-medium" style={{ color: '#6B2D82' }}>Forgot password?</a>
+                <a href="/forgot-password" className="text-sm font-medium" style={{ color: '#6B2D82' }}>Forgot password?</a>
               </div>
             </div>
 
