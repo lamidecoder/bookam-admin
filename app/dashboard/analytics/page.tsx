@@ -8,6 +8,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis,
 } from 'recharts';
 import { getAllBookings, getAllProperties, getRecentReviews, errorMessage, type DbBooking, type DbProperty, type ReviewRow } from '@/lib/api';
+import { downloadCsv } from '@/lib/csv';
 
 const PALETTE = ['#6B2D82', '#C9A84C', '#D1D1D6', '#3A7BD5', '#2E9E6B'];
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -40,6 +41,22 @@ export default function AnalyticsPage() {
 
   const inRange = useMemo(() => bookings.filter((b) => new Date(b.created_at) >= cutoff), [bookings, cutoff]);
   const validBookings = useMemo(() => inRange.filter((b) => b.status !== 'cancelled'), [inRange]);
+
+  function handleExport() {
+    // Exports exactly what's currently being analyzed - respects the
+    // active date-range filter (7D/30D/90D/12M), not just "everything".
+    downloadCsv(
+      `bookam-analytics-${range}-${new Date().toISOString().slice(0, 10)}.csv`,
+      inRange.map((b) => ({
+        date: new Date(b.created_at).toLocaleDateString('en-GB'),
+        guest_name: b.profiles?.full_name ?? '',
+        property: b.properties?.name ?? '',
+        property_type: b.properties?.type ?? '',
+        total: Number(b.total),
+        status: b.status,
+      }))
+    );
+  }
 
   const revenue = validBookings.reduce((s, b) => s + Number(b.total), 0);
   const uniqueGuests = new Set(inRange.map((b) => b.user_id)).size;
@@ -146,7 +163,7 @@ export default function AnalyticsPage() {
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold" style={{ borderColor: '#6B2D82', color: '#6B2D82' }}>
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold" style={{ borderColor: '#6B2D82', color: '#6B2D82' }}>
             <Upload size={14} /> Export
           </button>
         </div>

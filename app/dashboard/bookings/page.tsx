@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Upload, Search, Eye, ClipboardList, CheckCircle2, Clock, XCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getBookingsPage, getAllBookings, errorMessage, type DbBooking } from '@/lib/api';
 import { downloadCsv } from '@/lib/csv';
+import { useToast } from '@/components/ToastProvider';
 
 const PAGE_SIZE = 10;
 
@@ -23,6 +24,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function BookingsPage() {
+  const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState<DbBooking[]>([]);
@@ -53,7 +55,7 @@ export default function BookingsPage() {
         }))
       );
     } catch (e) {
-      alert(errorMessage(e));
+      showToast(errorMessage(e), 'error');
     } finally {
       setExporting(false);
     }

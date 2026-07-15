@@ -6,11 +6,13 @@ import { BookamLogo } from '@/components/BookamLogo';
 import { BookamSymbol } from '@/components/BookamSymbol';
 import { supabase } from '@/lib/supabase';
 import { isAllowedAdminEmail } from '@/lib/adminAllowlist';
+import { useToast } from '@/components/ToastProvider';
 
 const GENERIC_ERROR = 'Invalid email or password.';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +42,7 @@ export default function AdminLoginPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, full_name')
         .eq('id', data.user.id)
         .single();
 
@@ -50,6 +52,7 @@ export default function AdminLoginPage() {
         return;
       }
 
+      showToast(`Welcome back, ${profile?.full_name ?? 'Admin'}.`, 'success');
       router.push('/dashboard');
     } catch {
       setError(GENERIC_ERROR);

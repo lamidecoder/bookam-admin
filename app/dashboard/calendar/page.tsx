@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Lock, X, AlertTriangle, CheckCircle2, CalendarOff } from 'lucide-react';
 import { getAllProperties, getBookingsForProperty, getBlockedDatesForProperty, blockDates, unblockDate, subscribeToPropertyCalendar, errorMessage, type DbProperty, type DbBooking, type DbBlockedDate } from '@/lib/api';
+import { useConfirm } from '@/components/ConfirmProvider';
+import { useToast } from '@/components/ToastProvider';
 
 function pad(n: number) {
   return String(n).padStart(2, '0');
@@ -106,6 +108,8 @@ export default function CalendarOverridePage() {
 
 function CalendarOverrideInner() {
   const searchParams = useSearchParams();
+  const confirmAction = useConfirm();
+  const { showToast } = useToast();
   const [properties, setProperties] = useState<DbProperty[]>([]);
   const [propertyId, setPropertyId] = useState<string | null>(null);
   const [cursor, setCursor] = useState(() => {
@@ -238,20 +242,27 @@ function CalendarOverrideInner() {
       setOverrideMode(false);
       setPickedDates([]);
       setNotes('');
+      load(); // refresh the grid immediately so blocked dates show without a manual page reload
     } catch (e) {
-      alert(errorMessage(e));
+      showToast(errorMessage(e), 'error');
     }
   }
 
   async function handleUnblock(iso: string) {
     if (!propertyId) return;
-    if (!confirm('Unblock this date? It becomes bookable again immediately.')) return;
+    const ok = await confirmAction({
+      title: 'Unblock this date?',
+      message: 'It becomes bookable again immediately in the guest app.',
+      confirmLabel: 'Unblock',
+    });
+    if (!ok) return;
     try {
       await unblockDate(propertyId, iso);
       setSelected(null);
       setFlash(`Unblocked ${new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.`);
+      load(); // refresh the grid immediately, same reason as above
     } catch (e) {
-      alert(errorMessage(e));
+      showToast(errorMessage(e), 'error');
     }
   }
 

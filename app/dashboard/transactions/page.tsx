@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Upload, Search, Eye, RotateCcw, X, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { getTransactions, processRefund, errorMessage, type DbBooking } from '@/lib/api';
+import { downloadCsv } from '@/lib/csv';
 import { StatusBadge } from '@/components/StatusBadge';
 
 type Txn = DbBooking;
@@ -123,6 +124,21 @@ export default function TransactionsPage() {
     `${t.profiles?.full_name ?? ''} ${t.properties?.name ?? ''}`.toLowerCase().includes(search.toLowerCase())
   );
 
+  function handleExport() {
+    downloadCsv(
+      `bookam-transactions-${new Date().toISOString().slice(0, 10)}.csv`,
+      filtered.map((t) => ({
+        date: new Date(t.created_at).toLocaleDateString('en-GB'),
+        guest_name: t.profiles?.full_name ?? '',
+        property: t.properties?.name ?? '',
+        amount: Number(t.total),
+        payment_method: 'Paystack',
+        paystack_ref: t.paystack_ref ?? '',
+        status: t.status,
+      }))
+    );
+  }
+
   const totalRevenue = transactions.filter((t) => t.status !== 'cancelled').reduce((s, t) => s + Number(t.total), 0);
   const refundCount = transactions.filter((t) => t.status === 'cancelled').length;
   const refundTotal = transactions.filter((t) => t.status === 'cancelled').reduce((s, t) => s + Number(t.cancellation_fee ? t.total - t.cancellation_fee : t.total), 0);
@@ -134,7 +150,7 @@ export default function TransactionsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
           <p className="text-gray-500 mt-1">Every payment that has gone through the platform via Paystack.</p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-semibold text-gray-700" style={{ borderColor: '#F0EBF8' }}>
+        <button onClick={handleExport} className="flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-semibold text-gray-700" style={{ borderColor: '#F0EBF8' }}>
           <Upload size={16} /> Export CSV
         </button>
       </div>

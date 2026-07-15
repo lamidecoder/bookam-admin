@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { BookamLogo } from './BookamLogo';
 import { supabase } from '@/lib/supabase';
+import { useConfirm } from './ConfirmProvider';
+import { useToast } from './ToastProvider';
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/dashboard', icon: LayoutGrid },
@@ -30,6 +32,8 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [adminName, setAdminName] = useState('Admin User');
+  const confirmAction = useConfirm();
+  const { showToast } = useToast();
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -53,7 +57,17 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: Props) {
   }, [pathname]);
 
   async function handleLogout() {
+    const ok = await confirmAction({
+      title: 'Log out?',
+      message: "You'll need to sign in again to access the admin dashboard.",
+      confirmLabel: 'Log Out',
+      cancelLabel: 'Stay Signed In',
+      destructive: true,
+    });
+    if (!ok) return;
+
     await supabase.auth.signOut();
+    showToast("You've been logged out.", 'success');
     router.push('/');
   }
 
