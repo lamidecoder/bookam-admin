@@ -266,7 +266,7 @@ function CalendarOverrideInner() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Calendar Override</h1>
           <p className="text-gray-500 mt-1">Full control over any property&apos;s availability calendar.</p>

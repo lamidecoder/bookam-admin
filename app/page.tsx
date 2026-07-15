@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, Info, CheckCircle2 } from 'lucide-react';
 import { BookamLogo } from '@/components/BookamLogo';
 import { supabase } from '@/lib/supabase';
@@ -71,7 +70,8 @@ export default function AdminLoginPage() {
             style={{ width: 88, height: 88, backgroundColor: 'rgba(255,255,255,0.12)' }}
           >
             <div style={{ width: 52, height: 52, position: 'relative' }}>
-              <Image src="/bookam-symbol.png" alt="Bookam" fill style={{ objectFit: 'contain' }} priority />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/bookam-symbol.png" alt="Bookam" width={52} height={52} style={{ width: 52, height: 52, objectFit: 'contain' }} />
             </div>
           </div>
           <h1 className="text-3xl font-bold text-white mb-4">Bookam</h1>

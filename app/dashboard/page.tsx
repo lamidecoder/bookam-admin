@@ -74,7 +74,7 @@ export default function OverviewPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Overview</h1>
         <div className="flex items-center gap-2 text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border" style={{ borderColor: '#F0EBF8' }}>
           <Calendar size={16} />

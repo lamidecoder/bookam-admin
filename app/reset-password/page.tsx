@@ -1,36 +1,55 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import Link from 'next/link';
-import { Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { BookamLogo } from '@/components/BookamLogo';
 import { supabase } from '@/lib/supabase';
 
-export default function ResetPasswordPage() {
+function ResetPasswordInner() {
   const router = useRouter();
-  const [hasSession, setHasSession] = useState<boolean | null>(null);
+  const searchParams = useSearchParams();
+  const email = searchParams.get('email') || '';
+
+  const [step, setStep] = useState<'code' | 'password' | 'done'>('code');
+  const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [done, setDone] = useState(false);
 
-  useEffect(() => {
-    // The reset link puts the browser into a real recovery session
-    // automatically via the URL fragment — this just confirms one
-    // actually exists before letting the form render, rather than
-    // showing a password form to someone who followed a stale/invalid
-    // link and has no way to actually complete the reset.
-    supabase.auth.getSession().then(({ data }) => {
-      setHasSession(!!data.session);
-    });
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (code.trim().length < 6) {
+      setError('Enter the 6-digit code from your email.');
+      return;
+    }
+    setLoading(true);
+    try {
+      // This is the same verifyOtp({ type: 'recovery' }) pattern already
+      // proven working in the mobile app's password reset flow - this
+      // project's email template sends a numeric code, not a magic
+      // link, so there's no session until this succeeds.
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: code.trim(),
+        type: 'recovery',
+      });
+      if (error) throw error;
+      setStep('password');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'That code is incorrect or has expired.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
     if (password.length < 8) {
       setError('Password must be at least 8 characters.');
       return;
@@ -39,12 +58,11 @@ export default function ResetPasswordPage() {
       setError('Passwords do not match.');
       return;
     }
-
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      setDone(true);
+      setStep('done');
       setTimeout(() => router.push('/'), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not reset password. Please try again.');
@@ -61,30 +79,49 @@ export default function ResetPasswordPage() {
         </div>
 
         <div className="bg-white rounded-2xl border p-8" style={{ borderColor: '#F0EBF8' }}>
-          {hasSession === null ? (
-            <p className="text-center text-sm text-gray-400 py-6">Checking your link…</p>
-          ) : !hasSession ? (
-            <div className="text-center">
-              <h1 className="text-xl font-bold text-gray-900 mb-2">Link expired</h1>
+          {step === 'code' && (
+            <>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Enter the code</h1>
               <p className="text-sm text-gray-500 mb-6">
-                This password reset link is invalid or has expired. Request a new one to continue.
+                If <span className="font-medium text-gray-700">{email || 'that email'}</span> is an authorised admin account, a 6-digit code was sent to it. Enter it below.
               </p>
-              <Link href="/forgot-password" className="text-sm font-semibold" style={{ color: '#6B2D82' }}>
-                Request a new link
+
+              {error && (
+                <div className="rounded-lg p-3 text-sm mb-4" style={{ backgroundColor: '#FEF2F2', color: '#D94F4F' }}>
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleVerifyCode}>
+                <label className="block text-xs font-bold text-gray-500 mb-2">6-DIGIT CODE</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000"
+                  className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg tracking-[0.3em] text-center font-semibold focus:outline-none mb-5"
+                  style={{ borderColor: '#F0EBF8' }}
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl text-white text-sm font-semibold disabled:opacity-60"
+                  style={{ backgroundColor: '#6B2D82' }}
+                >
+                  {loading ? 'Verifying…' : 'Verify Code'}
+                </button>
+              </form>
+              <Link href="/forgot-password" className="flex items-center justify-center gap-1.5 mt-5 text-sm font-medium text-gray-500 hover:text-gray-700">
+                <ArrowLeft size={14} /> Request a new code
               </Link>
-            </div>
-          ) : done ? (
-            <div className="text-center">
-              <div
-                className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
-                style={{ backgroundColor: '#F0FDF6' }}
-              >
-                <CheckCircle2 size={24} style={{ color: '#2E9E6B' }} />
-              </div>
-              <h1 className="text-xl font-bold text-gray-900 mb-2">Password updated</h1>
-              <p className="text-sm text-gray-500">Redirecting you to login…</p>
-            </div>
-          ) : (
+            </>
+          )}
+
+          {step === 'password' && (
             <>
               <h1 className="text-xl font-bold text-gray-900 mb-2">Set a new password</h1>
               <p className="text-sm text-gray-500 mb-6">Your new password must be different from your previous one.</p>
@@ -95,7 +132,7 @@ export default function ResetPasswordPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSetPassword}>
                 <label className="block text-xs font-bold text-gray-500 mb-2">NEW PASSWORD</label>
                 <div className="relative mb-4">
                   <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -137,8 +174,29 @@ export default function ResetPasswordPage() {
               </form>
             </>
           )}
+
+          {step === 'done' && (
+            <div className="text-center">
+              <div
+                className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
+                style={{ backgroundColor: '#F0FDF6' }}
+              >
+                <CheckCircle2 size={24} style={{ color: '#2E9E6B' }} />
+              </div>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Password updated</h1>
+              <p className="text-sm text-gray-500">Redirecting you to login…</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordInner />
+    </Suspense>
   );
 }
