@@ -13,6 +13,8 @@
  */
 export const ADMIN_EMAIL_ALLOWLIST = [
   'lamidecodes@gmail.com',
+  'alaribee001@gmail.com',      // Alaribe Emmanuel
+  'darlingtonochasi4@gmail.com', // Ochasi Darlington
 ];
 
 export function isAllowedAdminEmail(email: string): boolean {

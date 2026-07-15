@@ -176,7 +176,7 @@ export default function AdminLoginPage() {
             </div>
           </form>
 
-          <p className="text-center text-sm text-gray-400 mt-12">© 2025 Bookam. All rights reserved.</p>
+          <p className="text-center text-sm text-gray-400 mt-12">© {new Date().getFullYear()} Bookam. All rights reserved.</p>
         </div>
       </div>
     </div>
