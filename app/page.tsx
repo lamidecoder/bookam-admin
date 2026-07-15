@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, Info, CheckCircle2 } from 'lucide-react';
 import { BookamLogo } from '@/components/BookamLogo';
+import { BookamSymbol } from '@/components/BookamSymbol';
 import { supabase } from '@/lib/supabase';
 import { isAllowedAdminEmail } from '@/lib/adminAllowlist';
 
@@ -69,9 +70,8 @@ export default function AdminLoginPage() {
             className="rounded-3xl flex items-center justify-center mb-6"
             style={{ width: 88, height: 88, backgroundColor: 'rgba(255,255,255,0.12)' }}
           >
-            <div style={{ width: 52, height: 52, position: 'relative' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/bookam-symbol.png" alt="Bookam" width={52} height={52} style={{ width: 52, height: 52, objectFit: 'contain' }} />
+            <div style={{ width: 52, height: 26, position: 'relative' }}>
+              <BookamSymbol width={52} height={26} />
             </div>
           </div>
           <h1 className="text-3xl font-bold text-white mb-4">Bookam</h1>
