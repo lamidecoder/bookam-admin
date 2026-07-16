@@ -178,6 +178,22 @@ export async function setPropertyActive(id: string, active: boolean) {
   return updateProperty(id, { active });
 }
 
+export async function deleteProperty(id: string) {
+  const { count, error: countError } = await supabase
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .eq('property_id', id);
+  if (countError) throw countError;
+  if (count && count > 0) {
+    throw new Error(
+      `This property has ${count} booking${count > 1 ? 's' : ''} on record and can't be deleted. Deactivate it instead to hide it from guests while keeping its history intact.`
+    );
+  }
+
+  const { error } = await supabase.from('properties').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export function subscribeToAllProperties(callback: (properties: DbProperty[]) => void) {
   return supabase
     .channel('admin:properties')

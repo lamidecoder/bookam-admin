@@ -2,8 +2,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Minus, Trash2, UploadCloud } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Trash2, UploadCloud, Loader2, X } from 'lucide-react';
 import { createProperty, errorMessage } from '@/lib/api';
+import { uploadToCloudinary, CLOUDINARY_CONFIGURED } from '@/lib/cloudinary';
 
 const AMENITY_OPTIONS = ['WiFi', 'Parking', 'Pool', 'Generator', 'AC', 'TV', 'Kitchen', 'Security', 'Laundry'];
 
@@ -20,12 +21,40 @@ export default function AddPropertyPage() {
   const [cancellationFeePercent, setCancellationFeePercent] = useState(15);
   const [amenities, setAmenities] = useState<string[]>(['WiFi']);
   const [houseRules, setHouseRules] = useState<string[]>(['No smoking inside', 'Check in after 2:00 PM']);
+  const [images, setImages] = useState<{ url: string; uploading: boolean }[]>([]);
+  const [urlInput, setUrlInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const toggleAmenity = (a: string) =>
     setAmenities((cur) => (cur.includes(a) ? cur.filter((x) => x !== a) : [...cur, a]));
   const removeRule = (i: number) => setHouseRules((cur) => cur.filter((_, idx) => idx !== i));
+  const removeImage = (i: number) => setImages((cur) => cur.filter((_, idx) => idx !== i));
+
+  async function handleFilesSelected(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+    const placeholders = fileArray.map((f) => ({ url: URL.createObjectURL(f), uploading: true }));
+    setImages((cur) => [...cur, ...placeholders]);
+    const startIndex = images.length;
+
+    for (let i = 0; i < fileArray.length; i++) {
+      try {
+        const hostedUrl = await uploadToCloudinary(fileArray[i]);
+        setImages((cur) => cur.map((img, idx) => (idx === startIndex + i ? { url: hostedUrl, uploading: false } : img)));
+      } catch (e) {
+        setErrorMsg(errorMessage(e));
+        setImages((cur) => cur.filter((_, idx) => idx !== startIndex + i));
+      }
+    }
+  }
+
+  function addImageUrl() {
+    const url = urlInput.trim();
+    if (!url) return;
+    setImages((cur) => [...cur, { url, uploading: false }]);
+    setUrlInput('');
+  }
 
   async function handleSubmit() {
     if (!name.trim() || !area.trim() || !pricePerNight) {
@@ -34,6 +63,10 @@ export default function AddPropertyPage() {
     }
     if (cancellationFeePercent <= 0) {
       setErrorMsg('Cancellation fee cannot be zero — every booking on this platform requires one.');
+      return;
+    }
+    if (images.some((img) => img.uploading)) {
+      setErrorMsg('Please wait for photo uploads to finish before saving.');
       return;
     }
     setSaving(true);
@@ -51,6 +84,7 @@ export default function AddPropertyPage() {
         house_rules: houseRules,
         min_stay: minStay,
         cancellation_fee_percent: cancellationFeePercent,
+        images: images.map((img) => img.url),
       });
       router.push('/dashboard/properties');
     } catch (e) {
@@ -185,13 +219,60 @@ export default function AddPropertyPage() {
           </div>
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
-            <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>Photos &amp; Video</h3>
-            <div className="border-2 border-dashed rounded-xl py-10 flex flex-col items-center justify-center" style={{ borderColor: '#E0D2EE' }}>
+            <h3 className="text-lg font-bold mb-1" style={{ color: '#6B2D82' }}>Photos</h3>
+            <p className="text-xs text-gray-400 mb-5">The first photo becomes the main listing photo guests see first.</p>
+
+            {!CLOUDINARY_CONFIGURED && (
+              <div className="rounded-lg p-3 text-xs mb-4" style={{ backgroundColor: '#FFFBEB', color: '#92600F' }}>
+                Cloudinary isn&apos;t connected yet — uploads will fail until real credentials are added.
+              </div>
+            )}
+
+            <label className="block border-2 border-dashed rounded-xl py-8 flex flex-col items-center justify-center cursor-pointer" style={{ borderColor: '#E0D2EE' }}>
               <UploadCloud size={22} style={{ color: '#6B2D82' }} />
-              <p className="font-semibold mt-2" style={{ color: '#6B2D82' }}>Click to upload up to 10 photos</p>
-              <p className="text-xs text-gray-400 mt-1">Photo upload to Cloudinary isn&apos;t wired yet — see SETUP.md</p>
+              <p className="font-semibold mt-2 text-sm" style={{ color: '#6B2D82' }}>Click to upload photos</p>
+              <p className="text-xs text-gray-400 mt-1">or drag and drop — JPG, PNG, up to 10 photos</p>
+              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFilesSelected(e.target.files)} />
+            </label>
+
+            {images.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
+                {images.map((img, i) => (
+                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border" style={{ borderColor: '#F0EBF8' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    {img.uploading && (
+                      <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                        <Loader2 size={18} className="animate-spin" style={{ color: '#6B2D82' }} />
+                      </div>
+                    )}
+                    {!img.uploading && (
+                      <button onClick={() => removeImage(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center">
+                        <X size={12} className="text-white" />
+                      </button>
+                    )}
+                    {i === 0 && !img.uploading && (
+                      <span className="absolute bottom-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor: '#6B2D82', color: 'white' }}>MAIN</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-4 pt-4 border-t flex items-center gap-2" style={{ borderColor: '#F0EBF8' }}>
+              <input
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addImageUrl(); } }}
+                placeholder="Or paste an image URL"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm"
+              />
+              <button onClick={addImageUrl} className="px-4 py-2.5 rounded-lg text-sm font-semibold border flex-shrink-0" style={{ borderColor: '#6B2D82', color: '#6B2D82' }}>
+                Add
+              </button>
             </div>
-            <div className="mt-4">
+
+            <div className="mt-5 pt-4 border-t" style={{ borderColor: '#F0EBF8' }}>
               <label className="block text-xs font-bold text-gray-500 mb-2">VIDEO LINK (INSTAGRAM, TIKTOK, ETC.)</label>
               <input placeholder="https://instagram.com/reels/..." className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
             </div>

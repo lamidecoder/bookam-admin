@@ -179,15 +179,15 @@ export default function BookingDetailPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.push('/dashboard/bookings')} className="text-gray-400 hover:text-gray-600"><ArrowLeft size={20} /></button>
-          <div>
+          <button onClick={() => router.push('/dashboard/bookings')} className="text-gray-400 hover:text-gray-600 flex-shrink-0"><ArrowLeft size={20} /></button>
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold text-gray-900">Booking Detail</h1>
-            <p className="text-sm text-gray-500">Ref: {booking.payment_ref ?? booking.id.slice(0, 8)}</p>
+            <p className="text-sm text-gray-500 truncate">Ref: {booking.payment_ref ?? booking.id.slice(0, 8)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="text-xs font-semibold px-3 py-1.5 rounded-full uppercase" style={{ backgroundColor: '#F0FDF6', color: '#2E9E6B' }}>{booking.status}</span>
           <button className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#6B2D82' }}>
             <Download size={16} /> Download Receipt
@@ -206,16 +206,16 @@ export default function BookingDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl border overflow-hidden flex" style={{ borderColor: '#F0EBF8' }}>
-            <div className="w-56 h-40 bg-gradient-to-br from-orange-200 to-purple-300 flex-shrink-0" />
-            <div className="p-5 flex-1">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-gray-900">{booking.properties?.name ?? 'Property'}</h3>
-                <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ backgroundColor: '#F0E6FA', color: '#6B2D82' }}>
+          <div className="bg-white rounded-2xl border overflow-hidden flex flex-col sm:flex-row" style={{ borderColor: '#F0EBF8' }}>
+            <div className="w-full h-40 sm:w-56 sm:h-40 bg-gradient-to-br from-orange-200 to-purple-300 flex-shrink-0" />
+            <div className="p-5 flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <h3 className="text-lg font-bold text-gray-900 truncate">{booking.properties?.name ?? 'Property'}</h3>
+                <span className="text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0" style={{ backgroundColor: '#F0E6FA', color: '#6B2D82' }}>
                   {booking.properties?.type?.toUpperCase() ?? ''}
                 </span>
               </div>
-              <Link href="#" className="text-sm font-medium" style={{ color: '#6B2D82' }}>View Property</Link>
+              <Link href={`/dashboard/properties/${booking.property_id}/edit`} className="text-sm font-medium" style={{ color: '#6B2D82' }}>View Property</Link>
               <div className="flex items-center gap-1 text-sm text-gray-500 mt-2">
                 <MapPin size={14} /> {booking.properties?.location ?? '—'}
               </div>

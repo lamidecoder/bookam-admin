@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Upload, Plus, Search, ChevronDown, Pencil, Trash2, Calendar as CalendarIcon } from 'lucide-react';
-import { getAllProperties, setPropertyActive, subscribeToAllProperties, errorMessage, type DbProperty } from '@/lib/api';
+import { Upload, Plus, Search, ChevronDown, Pencil, Trash2, Calendar as CalendarIcon, Ban, CheckCircle2, Loader2 } from 'lucide-react';
+import { getAllProperties, setPropertyActive, deleteProperty, subscribeToAllProperties, errorMessage, type DbProperty } from '@/lib/api';
 import { downloadCsv } from '@/lib/csv';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useToast } from '@/components/ToastProvider';
@@ -15,6 +15,7 @@ export default function PropertiesPage() {
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
   const confirmAction = useConfirm();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     getAllProperties()
@@ -43,6 +44,27 @@ export default function PropertiesPage() {
       showToast(p.active ? 'Property deactivated.' : 'Property reactivated.', 'success');
     } catch (e) {
       showToast(errorMessage(e), 'error');
+    }
+  }
+
+  async function handleDelete(p: DbProperty) {
+    const ok = await confirmAction({
+      title: `Delete "${p.name}" permanently?`,
+      message: 'This cannot be undone. If this property has any bookings on record, deletion will be blocked automatically — deactivate it instead in that case.',
+      confirmLabel: 'Delete Forever',
+      destructive: true,
+    });
+    if (!ok) return;
+
+    setDeletingId(p.id);
+    try {
+      await deleteProperty(p.id);
+      setProperties((cur) => cur.filter((x) => x.id !== p.id));
+      showToast('Property deleted.', 'success');
+    } catch (e) {
+      showToast(errorMessage(e), 'error');
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -153,11 +175,29 @@ export default function PropertiesPage() {
                   ₦{Number(p.price_per_night).toLocaleString()} <span className="text-sm font-normal text-gray-400">/ night</span>
                 </p>
                 <div className="flex gap-2">
-                  <Link href={`/dashboard/properties/${p.id}/edit`} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F8F5FA' }}>
+                  <Link href={`/dashboard/properties/${p.id}/edit`} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F8F5FA' }} title="Edit">
                     <Pencil size={15} className="text-gray-600" />
                   </Link>
-                  <button onClick={() => toggleActive(p)} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FEF2F2' }} title={p.active ? 'Deactivate' : 'Reactivate'}>
-                    <Trash2 size={15} className="text-red-500" />
+                  <button
+                    onClick={() => toggleActive(p)}
+                    className="w-9 h-9 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: p.active ? '#FFFBEB' : '#F0FDF6' }}
+                    title={p.active ? 'Deactivate — hides it from guests, keeps its history' : 'Reactivate — makes it bookable again'}
+                  >
+                    {p.active
+                      ? <Ban size={15} style={{ color: '#E8922A' }} />
+                      : <CheckCircle2 size={15} style={{ color: '#2E9E6B' }} />}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(p)}
+                    disabled={deletingId === p.id}
+                    className="w-9 h-9 rounded-full flex items-center justify-center disabled:opacity-60"
+                    style={{ backgroundColor: '#FEF2F2' }}
+                    title="Delete permanently"
+                  >
+                    {deletingId === p.id
+                      ? <Loader2 size={15} className="text-red-500 animate-spin" />
+                      : <Trash2 size={15} className="text-red-500" />}
                   </button>
                 </div>
               </div>
