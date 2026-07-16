@@ -231,6 +231,71 @@ export async function deleteSpecialRate(id: string) {
   if (error) throw error;
 }
 
+export type PricingHistoryEntry = {
+  id: string;
+  property_id: string;
+  change_type: string;
+  description: string;
+  changed_by_name: string | null;
+  created_at: string;
+};
+
+export async function logPricingChange(propertyId: string, changeType: string, description: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  let adminName: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
+    adminName = profile?.full_name ?? null;
+  }
+  // Logging failures should never block the actual pricing change from
+  // succeeding - the history entry is a nice-to-have record, not a
+  // prerequisite. Swallow errors here rather than throw.
+  await supabase.from('pricing_history').insert({
+    property_id: propertyId,
+    change_type: changeType,
+    description,
+    changed_by: user?.id,
+    changed_by_name: adminName,
+  }).then(({ error }) => {
+    if (error) console.warn('Could not log pricing change:', error.message);
+  });
+}
+
+export async function getPricingHistory(propertyId: string, limit = 10): Promise<PricingHistoryEntry[]> {
+  const { data, error } = await supabase
+    .from('pricing_history')
+    .select('*')
+    .eq('property_id', propertyId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getMonthlyRevenue(propertyId: string): Promise<{ thisMonth: number; lastMonth: number }> {
+  const now = new Date();
+  const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('total, created_at, status')
+    .eq('property_id', propertyId)
+    .neq('status', 'cancelled')
+    .gte('created_at', startOfLastMonth);
+  if (error) throw error;
+
+  let thisMonth = 0;
+  let lastMonth = 0;
+  (data || []).forEach((b) => {
+    const amount = Number(b.total) || 0;
+    if (b.created_at >= startOfThisMonth) thisMonth += amount;
+    else lastMonth += amount;
+  });
+
+  return { thisMonth, lastMonth };
+}
+
 // ============================================
 // CALENDAR / BLOCKED DATES
 // ============================================
