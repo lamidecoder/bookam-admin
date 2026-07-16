@@ -116,7 +116,25 @@ export default function OverviewPage() {
               {recent.length === 0 ? (
                 <p className="text-sm text-gray-400 py-6 text-center">No bookings yet.</p>
               ) : (
-                <div className="overflow-x-auto">
+                <>
+                {/* Mobile: card list */}
+                <div className="md:hidden divide-y" style={{ borderColor: '#F5F2F8' }}>
+                  {recent.map((b) => (
+                    <Link key={b.id} href={`/dashboard/bookings/${b.id}`} className="block py-3">
+                      <div className="flex items-start justify-between gap-3 mb-1.5">
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 truncate">{b.profiles?.full_name ?? '—'}</p>
+                          <p className="text-xs text-gray-500 truncate">{b.properties?.name ?? '—'}</p>
+                        </div>
+                        <StatusBadge status={b.status} />
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900">₦{Number(b.total).toLocaleString()}</p>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Desktop: full table */}
+                <div className="overflow-x-auto hidden md:block">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-gray-400 text-xs">
@@ -144,6 +162,7 @@ export default function OverviewPage() {
                   </tbody>
                 </table>
                 </div>
+                </>
               )}
             </div>
 

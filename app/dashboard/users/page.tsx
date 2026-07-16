@@ -95,7 +95,33 @@ export default function UsersPage() {
         <p className="text-center text-gray-400 py-16">Loading guests…</p>
       ) : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: '#F0EBF8' }}>
-          <div className="overflow-x-auto">
+          {/* Mobile: card list */}
+          <div className="md:hidden divide-y" style={{ borderColor: '#F5F2F8' }}>
+            {filtered.map((g) => (
+              <Link key={g.id} href={`/dashboard/users/${g.id}`} className="block px-5 py-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#6B2D82' }}>
+                    {g.full_name?.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-gray-900 truncate">{g.full_name}</p>
+                    <p className="text-sm text-gray-500 truncate">{g.email}</p>
+                  </div>
+                  <StatusBadge status={g.status} />
+                </div>
+                <div className="flex items-center justify-between text-sm pl-12">
+                  <span className="text-gray-500">{g.bookingCount} booking{g.bookingCount !== 1 ? 's' : ''}</span>
+                  <span className="font-semibold" style={{ color: '#6B2D82' }}>₦{g.totalSpent.toLocaleString()}</span>
+                </div>
+              </Link>
+            ))}
+            {filtered.length === 0 && (
+              <p className="text-center py-12 text-gray-400">No guests match your search.</p>
+            )}
+          </div>
+
+          {/* Desktop: full table */}
+          <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: '#FAF8FC' }}>

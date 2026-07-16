@@ -158,7 +158,33 @@ export default function BookingsPage() {
         ) : rows.length === 0 ? (
           <p className="text-center text-gray-400 py-16">No bookings match your search.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: card list showing the essentials without horizontal scrolling */}
+          <div className="md:hidden divide-y" style={{ borderColor: '#F5F2F8' }}>
+            {rows.map((b) => (
+              <Link
+                key={b.id}
+                href={`/dashboard/bookings/${b.id}`}
+                className="block px-5 py-4"
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">{b.profiles?.full_name ?? '—'}</p>
+                    <p className="text-sm text-gray-500 truncate">{b.properties?.name ?? '—'}</p>
+                  </div>
+                  <StatusBadge status={b.status} />
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">{b.check_in} → {b.check_out} · {b.nights}n</span>
+                  <span className="font-semibold text-gray-900">₦{Number(b.total).toLocaleString()}</span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{b.payment_ref ?? b.id.slice(0, 8)}</p>
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop: full table */}
+          <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: '#FAF8FC' }}>
@@ -186,6 +212,7 @@ export default function BookingsPage() {
             </tbody>
           </table>
           </div>
+          </>
         )}
         <div className="flex items-center justify-between px-5 py-4 border-t" style={{ borderColor: '#F0EBF8' }}>
           <p className="text-sm text-gray-500">

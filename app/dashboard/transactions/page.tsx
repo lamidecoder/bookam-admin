@@ -191,7 +191,35 @@ export default function TransactionsPage() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: '#F0EBF8' }}>
-          <div className="overflow-x-auto">
+          {/* Mobile: card list */}
+          <div className="md:hidden divide-y" style={{ borderColor: '#F5F2F8' }}>
+            {filtered.map((t) => (
+              <div key={t.id} className="px-5 py-4">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">{t.profiles?.full_name}</p>
+                    <p className="text-sm text-gray-500 truncate">{t.properties?.name}</p>
+                  </div>
+                  <StatusBadge status={t.status === 'cancelled' ? 'Refunded' : t.status} />
+                </div>
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-gray-500">{new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  <span className="font-semibold text-gray-900">₦{Number(t.total).toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-400">{t.paystack_ref || '—'}</p>
+                  {t.status !== 'cancelled' && (
+                    <button onClick={() => setRefundTarget(t)} className="flex items-center gap-1 text-xs font-semibold text-amber-600">
+                      <RotateCcw size={13} /> Refund
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: full table */}
+          <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: '#FAF8FC' }}>
