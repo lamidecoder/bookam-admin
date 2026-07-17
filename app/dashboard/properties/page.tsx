@@ -11,6 +11,8 @@ import { useConfirm } from '@/components/ConfirmProvider';
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<DbProperty[]>([]);
   const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
@@ -41,6 +43,7 @@ export default function PropertiesPage() {
     }
     try {
       await setPropertyActive(p.id, !p.active);
+      setProperties((cur) => cur.map((x) => (x.id === p.id ? { ...x, active: !p.active } : x)));
       showToast(p.active ? 'Property deactivated.' : 'Property reactivated.', 'success');
     } catch (e) {
       showToast(errorMessage(e), 'error');
@@ -68,9 +71,12 @@ export default function PropertiesPage() {
     }
   }
 
-  const filtered = properties.filter((p) =>
-    `${p.name} ${p.area}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = properties.filter((p) => {
+    const matchesSearch = `${p.name} ${p.area}`.toLowerCase().includes(search.toLowerCase());
+    const matchesType = typeFilter === 'All' || p.type === typeFilter;
+    const matchesStatus = statusFilter === 'All' || (statusFilter === 'Active' ? p.active : !p.active);
+    return matchesSearch && matchesType && matchesStatus;
+  });
 
   function handleExport() {
     // Exports whatever's currently visible (respects active search/filter)
@@ -122,12 +128,31 @@ export default function PropertiesPage() {
             className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm focus:outline-none"
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600">
-          All Types <ChevronDown size={14} />
-        </button>
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600">
-          All Statuses <ChevronDown size={14} />
-        </button>
+        <div className="relative">
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="appearance-none flex items-center gap-2 pl-4 pr-9 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600"
+          >
+            <option value="All">All Types</option>
+            <option value="Hotel">Hotel</option>
+            <option value="Shortlet">Shortlet</option>
+            <option value="Event Center">Event Center</option>
+          </select>
+          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        </div>
+        <div className="relative">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="appearance-none flex items-center gap-2 pl-4 pr-9 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600"
+          >
+            <option value="All">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        </div>
       </div>
 
       {loading && <p className="text-center text-gray-400 py-16">Loading properties…</p>}

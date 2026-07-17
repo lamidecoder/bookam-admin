@@ -15,6 +15,7 @@ const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function AnalyticsPage() {
   const [range, setRange] = useState('30D');
+  const [propertyFilter, setPropertyFilter] = useState('All');
   const [bookings, setBookings] = useState<DbBooking[]>([]);
   const [properties, setProperties] = useState<DbProperty[]>([]);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
@@ -39,7 +40,10 @@ export default function AnalyticsPage() {
     return d;
   }, [rangeDays]);
 
-  const inRange = useMemo(() => bookings.filter((b) => new Date(b.created_at) >= cutoff), [bookings, cutoff]);
+  const inRange = useMemo(
+    () => bookings.filter((b) => new Date(b.created_at) >= cutoff && (propertyFilter === 'All' || b.property_id === propertyFilter)),
+    [bookings, cutoff, propertyFilter]
+  );
   const validBookings = useMemo(() => inRange.filter((b) => b.status !== 'cancelled'), [inRange]);
 
   function handleExport() {
@@ -148,9 +152,20 @@ export default function AnalyticsPage() {
           <p className="text-gray-500 mt-1">Track performance, revenue and booking trends across all properties.</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border text-sm text-gray-600" style={{ borderColor: '#F0EBF8' }}>
-            All Properties <ChevronDown size={14} />
-          </button>
+          <div className="relative">
+            <select
+              value={propertyFilter}
+              onChange={(e) => setPropertyFilter(e.target.value)}
+              className="appearance-none flex items-center gap-2 pl-4 pr-9 py-2.5 rounded-xl bg-white border text-sm text-gray-600"
+              style={{ borderColor: '#F0EBF8' }}
+            >
+              <option value="All">All Properties</option>
+              {properties.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
           <div className="flex bg-gray-100 rounded-xl p-1">
             {['7D', '30D', '90D', '12M'].map((r) => (
               <button

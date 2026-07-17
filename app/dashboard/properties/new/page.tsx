@@ -29,6 +29,8 @@ export default function AddPropertyPage() {
   const toggleAmenity = (a: string) =>
     setAmenities((cur) => (cur.includes(a) ? cur.filter((x) => x !== a) : [...cur, a]));
   const removeRule = (i: number) => setHouseRules((cur) => cur.filter((_, idx) => idx !== i));
+  const updateRule = (i: number, value: string) =>
+    setHouseRules((cur) => cur.map((r, idx) => (idx === i ? value : r)));
   const removeImage = (i: number) => setImages((cur) => cur.filter((_, idx) => idx !== i));
 
   async function handleFilesSelected(files: FileList | null) {
@@ -207,9 +209,13 @@ export default function AddPropertyPage() {
             <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>House Rules</h3>
             <div className="space-y-2">
               {houseRules.map((rule, i) => (
-                <div key={i} className="flex items-center justify-between px-4 py-3 rounded-lg bg-gray-50">
-                  <span className="text-sm text-gray-700">{rule}</span>
-                  <button onClick={() => removeRule(i)}><Trash2 size={15} className="text-red-400" /></button>
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={rule}
+                    onChange={(e) => updateRule(i, e.target.value)}
+                    className="flex-1 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-700"
+                  />
+                  <button onClick={() => removeRule(i)} className="flex-shrink-0"><Trash2 size={15} className="text-red-400" /></button>
                 </div>
               ))}
             </div>

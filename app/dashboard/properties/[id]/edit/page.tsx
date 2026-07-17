@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Ban, CheckCircle2, UploadCloud, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Ban, CheckCircle2, UploadCloud, Loader2, X, Plus, Trash2 } from 'lucide-react';
 import { getPropertyById, updateProperty, setPropertyActive, errorMessage } from '@/lib/api';
 import { uploadToCloudinary, CLOUDINARY_CONFIGURED } from '@/lib/cloudinary';
 import { useToast } from '@/components/ToastProvider';
 import { useConfirm } from '@/components/ConfirmProvider';
+
+const AMENITY_OPTIONS = ['WiFi', 'Parking', 'Pool', 'Generator', 'AC', 'TV', 'Kitchen', 'Security', 'Laundry'];
 
 export default function EditPropertyPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +28,14 @@ export default function EditPropertyPage() {
   const [minStay, setMinStay] = useState(1);
   const [cancellationFeePercent, setCancellationFeePercent] = useState(15);
   const [images, setImages] = useState<{ url: string; uploading: boolean }[]>([]);
+  const [amenities, setAmenities] = useState<string[]>([]);
+  const [houseRules, setHouseRules] = useState<string[]>([]);
+
+  const toggleAmenity = (a: string) =>
+    setAmenities((cur) => (cur.includes(a) ? cur.filter((x) => x !== a) : [...cur, a]));
+  const removeRule = (i: number) => setHouseRules((cur) => cur.filter((_, idx) => idx !== i));
+  const updateRule = (i: number, value: string) =>
+    setHouseRules((cur) => cur.map((r, idx) => (idx === i ? value : r)));
   const [urlInput, setUrlInput] = useState('');
 
   const removeImage = (i: number) => setImages((cur) => cur.filter((_, idx) => idx !== i));
@@ -67,6 +77,8 @@ export default function EditPropertyPage() {
         setActive(p.active);
         setVerified(p.verified);
         setImages((p.images || []).map((url) => ({ url, uploading: false })));
+        setAmenities(p.amenities || []);
+        setHouseRules(p.house_rules || []);
       })
       .catch((e) => setErrorMsg(e.message))
       .finally(() => setLoading(false));
@@ -95,6 +107,8 @@ export default function EditPropertyPage() {
         min_stay: minStay,
         cancellation_fee_percent: cancellationFeePercent,
         images: images.map((img) => img.url),
+        amenities,
+        house_rules: houseRules,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -204,6 +218,47 @@ export default function EditPropertyPage() {
             <p className="text-xs text-gray-400 mt-3">
               For weekend pricing and special-date overrides, use the <a href="/dashboard/pricing" className="underline" style={{ color: '#6B2D82' }}>Pricing Control</a> page.
             </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
+            <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>Amenities</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {AMENITY_OPTIONS.map((a) => {
+                const isActive = amenities.includes(a);
+                return (
+                  <button
+                    key={a}
+                    onClick={() => toggleAmenity(a)}
+                    className="py-3 rounded-lg text-sm font-medium border"
+                    style={isActive ? { backgroundColor: '#F0E6FA', color: '#6B2D82', borderColor: '#E0D2EE' } : { backgroundColor: 'white', color: '#6B6478', borderColor: '#F0EBF8' }}
+                  >
+                    {a}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
+            <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>House Rules</h3>
+            <div className="space-y-2">
+              {houseRules.map((rule, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={rule}
+                    onChange={(e) => updateRule(i, e.target.value)}
+                    className="flex-1 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-700"
+                  />
+                  <button onClick={() => removeRule(i)} className="flex-shrink-0"><Trash2 size={15} className="text-red-400" /></button>
+                </div>
+              ))}
+              {houseRules.length === 0 && (
+                <p className="text-sm text-gray-400">No house rules yet.</p>
+              )}
+            </div>
+            <button onClick={() => setHouseRules((r) => [...r, 'New house rule'])} className="mt-3 flex items-center gap-1.5 text-sm font-semibold" style={{ color: '#6B2D82' }}>
+              <Plus size={15} /> Add Rule
+            </button>
           </div>
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
