@@ -38,6 +38,8 @@ export default function EditPropertyPage() {
     setHouseRules((cur) => cur.map((r, idx) => (idx === i ? value : r)));
   const [urlInput, setUrlInput] = useState('');
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
+  const [manualRating, setManualRating] = useState('');
+  const [savingRating, setSavingRating] = useState(false);
   const [guests, setGuests] = useState<GuestRow[]>([]);
   const [newReviewGuestId, setNewReviewGuestId] = useState('');
   const [newReviewRating, setNewReviewRating] = useState(5);
@@ -46,6 +48,23 @@ export default function EditPropertyPage() {
 
   function loadReviews() {
     getReviewsForProperty(id).then(setReviews).catch(() => {});
+  }
+
+  async function saveManualRating() {
+    const value = Number(manualRating);
+    if (!manualRating || isNaN(value) || value < 0 || value > 5) {
+      showToast('Enter a rating between 0 and 5, e.g. 4.5.', 'error');
+      return;
+    }
+    setSavingRating(true);
+    try {
+      await updateProperty(id, { rating: Math.round(value * 10) / 10 });
+      showToast('Rating updated — live on the app now.', 'success');
+    } catch (e) {
+      showToast(errorMessage(e), 'error');
+    } finally {
+      setSavingRating(false);
+    }
   }
 
   async function handleAddReview() {
@@ -128,6 +147,7 @@ export default function EditPropertyPage() {
         setImages((p.images || []).map((url) => ({ url, uploading: false })));
         setAmenities(p.amenities || []);
         setHouseRules(p.house_rules || []);
+        setManualRating(p.rating != null ? String(p.rating) : '');
       })
       .catch((e) => setErrorMsg(e.message))
       .finally(() => setLoading(false));
@@ -373,6 +393,36 @@ export default function EditPropertyPage() {
             <p className="text-xs text-gray-400 mb-5">
               Add a review on behalf of a guest who&apos;s actually stayed here. The property&apos;s star rating updates automatically.
             </p>
+
+            <div className="p-4 rounded-lg mb-5" style={{ backgroundColor: '#FAF8FC' }}>
+              <label className="block text-xs font-bold text-gray-500 mb-2">STAR RATING (SHOWN ON THE APP)</label>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Star size={15} fill="#F5A623" style={{ color: '#F5A623', position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    value={manualRating}
+                    onChange={(e) => setManualRating(e.target.value)}
+                    placeholder="e.g. 4.5"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white border border-gray-200 text-sm"
+                  />
+                </div>
+                <button
+                  onClick={saveManualRating}
+                  disabled={savingRating}
+                  className="px-4 py-2.5 rounded-lg text-white text-sm font-semibold disabled:opacity-60 flex-shrink-0"
+                  style={{ backgroundColor: '#6B2D82' }}
+                >
+                  {savingRating ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                Sets the star rating directly — no need to add individual reviews. Note: adding or deleting a review below recalculates this automatically from real review data, which will overwrite a manually-set number.
+              </p>
+            </div>
 
             {reviews.length === 0 ? (
               <p className="text-sm text-gray-400 mb-5">No reviews yet for this property.</p>
