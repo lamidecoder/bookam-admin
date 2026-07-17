@@ -91,15 +91,15 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: Props) {
 
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-72 sm:w-64 min-h-screen bg-white border-r
+          fixed inset-y-0 left-0 z-50 w-72 sm:w-64 h-screen bg-white border-r
           flex flex-col justify-between transition-transform duration-200 ease-out
           lg:sticky lg:top-0 lg:translate-x-0 lg:z-0
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
         style={{ borderColor: '#F0EBF8' }}
       >
-        <div>
-          <div className="px-6 py-6 flex items-center justify-between">
+        <div className="flex flex-col min-h-0 flex-1">
+          <div className="px-6 py-6 flex items-center justify-between flex-shrink-0">
             <BookamLogo size={24} />
             {/* Close button — mobile drawer only */}
             <button
@@ -110,7 +110,7 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: Props) {
               <X size={22} />
             </button>
           </div>
-          <nav className="px-3 mt-2 space-y-1">
+          <nav className="px-3 mt-2 space-y-1 overflow-y-auto min-h-0">
             {NAV_ITEMS.map(item => {
               const active = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));
               const Icon = item.icon;
@@ -133,7 +133,7 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: Props) {
           </nav>
         </div>
 
-        <div className="px-4 py-4 border-t" style={{ borderColor: '#F0EBF8' }}>
+        <div className="px-4 py-4 border-t flex-shrink-0" style={{ borderColor: '#F0EBF8' }}>
           <div className="flex items-center gap-3">
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
