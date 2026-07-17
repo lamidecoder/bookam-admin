@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Ban, CheckCircle2, UploadCloud, Loader2, X, Plus, Trash2 } from 'lucide-react';
-import { getPropertyById, updateProperty, setPropertyActive, errorMessage } from '@/lib/api';
+import { ArrowLeft, Ban, CheckCircle2, UploadCloud, Loader2, X, Plus, Trash2, Star } from 'lucide-react';
+import { getPropertyById, updateProperty, setPropertyActive, getAllGuests, getReviewsForProperty, addReview, deleteReview, errorMessage, type GuestRow, type ReviewRow } from '@/lib/api';
 import { uploadToCloudinary, CLOUDINARY_CONFIGURED } from '@/lib/cloudinary';
 import { useToast } from '@/components/ToastProvider';
 import { useConfirm } from '@/components/ConfirmProvider';
@@ -37,6 +37,55 @@ export default function EditPropertyPage() {
   const updateRule = (i: number, value: string) =>
     setHouseRules((cur) => cur.map((r, idx) => (idx === i ? value : r)));
   const [urlInput, setUrlInput] = useState('');
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
+  const [guests, setGuests] = useState<GuestRow[]>([]);
+  const [newReviewGuestId, setNewReviewGuestId] = useState('');
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [newReviewBody, setNewReviewBody] = useState('');
+  const [addingReview, setAddingReview] = useState(false);
+
+  function loadReviews() {
+    getReviewsForProperty(id).then(setReviews).catch(() => {});
+  }
+
+  async function handleAddReview() {
+    if (!newReviewGuestId) {
+      setErrorMsg('Choose which guest this review is from.');
+      return;
+    }
+    if (!newReviewBody.trim()) {
+      setErrorMsg('Enter the review text.');
+      return;
+    }
+    setAddingReview(true);
+    try {
+      await addReview(id, newReviewGuestId, newReviewRating, newReviewBody.trim());
+      setNewReviewGuestId('');
+      setNewReviewRating(5);
+      setNewReviewBody('');
+      loadReviews();
+    } catch (e) {
+      setErrorMsg(errorMessage(e));
+    } finally {
+      setAddingReview(false);
+    }
+  }
+
+  async function handleDeleteReview(reviewId: string) {
+    const ok = await confirmAction({
+      title: 'Delete this review?',
+      message: 'This cannot be undone, and will recalculate the property\'s average rating.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await deleteReview(reviewId, id);
+      loadReviews();
+    } catch (e) {
+      showToast(errorMessage(e), 'error');
+    }
+  }
 
   const removeImage = (i: number) => setImages((cur) => cur.filter((_, idx) => idx !== i));
 
@@ -82,6 +131,9 @@ export default function EditPropertyPage() {
       })
       .catch((e) => setErrorMsg(e.message))
       .finally(() => setLoading(false));
+    loadReviews();
+    getAllGuests().then(setGuests).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional mount-only load, loadReviews is redefined each render but only needs to run when id changes
   }, [id]);
 
   const [saved, setSaved] = useState(false);
@@ -312,6 +364,79 @@ export default function EditPropertyPage() {
               />
               <button onClick={addImageUrl} className="px-4 py-2.5 rounded-lg text-sm font-semibold border flex-shrink-0" style={{ borderColor: '#6B2D82', color: '#6B2D82' }}>
                 Add
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
+            <h3 className="text-lg font-bold mb-1" style={{ color: '#6B2D82' }}>Reviews</h3>
+            <p className="text-xs text-gray-400 mb-5">
+              Add a review on behalf of a guest who&apos;s actually stayed here. The property&apos;s star rating updates automatically.
+            </p>
+
+            {reviews.length === 0 ? (
+              <p className="text-sm text-gray-400 mb-5">No reviews yet for this property.</p>
+            ) : (
+              <div className="space-y-3 mb-5">
+                {reviews.map((r) => (
+                  <div key={r.id} className="p-3 rounded-lg" style={{ backgroundColor: '#FAF8FC' }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-900">{r.profiles?.full_name ?? 'Guest'}</span>
+                        <div className="flex items-center gap-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star key={i} size={12} fill={i < r.rating ? '#F5A623' : 'none'} style={{ color: '#F5A623' }} />
+                          ))}
+                        </div>
+                      </div>
+                      <button onClick={() => handleDeleteReview(r.id)} className="flex-shrink-0"><Trash2 size={14} className="text-red-400" /></button>
+                    </div>
+                    <p className="text-sm text-gray-600">{r.body}</p>
+                    <p className="text-xs text-gray-400 mt-1">{new Date(r.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="border-t pt-4" style={{ borderColor: '#F0EBF8' }}>
+              <p className="text-xs font-bold text-gray-500 mb-3">ADD A REVIEW</p>
+              <label className="block text-xs text-gray-500 mb-1">Guest</label>
+              <select
+                value={newReviewGuestId}
+                onChange={(e) => setNewReviewGuestId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm mb-3"
+              >
+                <option value="">Select a guest…</option>
+                {guests.map((g) => (
+                  <option key={g.id} value={g.id}>{g.full_name} ({g.email})</option>
+                ))}
+              </select>
+
+              <label className="block text-xs text-gray-500 mb-1">Rating</label>
+              <div className="flex items-center gap-1 mb-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <button key={i} onClick={() => setNewReviewRating(i + 1)}>
+                    <Star size={22} fill={i < newReviewRating ? '#F5A623' : 'none'} style={{ color: '#F5A623' }} />
+                  </button>
+                ))}
+              </div>
+
+              <label className="block text-xs text-gray-500 mb-1">Review</label>
+              <textarea
+                value={newReviewBody}
+                onChange={(e) => setNewReviewBody(e.target.value)}
+                placeholder="Great stay, very clean and well located..."
+                rows={3}
+                className="w-full px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm mb-4 resize-none"
+              />
+
+              <button
+                onClick={handleAddReview}
+                disabled={addingReview}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-semibold disabled:opacity-60"
+                style={{ borderColor: '#6B2D82', color: '#6B2D82' }}
+              >
+                <Plus size={16} /> {addingReview ? 'Adding…' : 'Add Review'}
               </button>
             </div>
           </div>

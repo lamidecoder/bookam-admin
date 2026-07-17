@@ -418,6 +418,49 @@ export async function getRecentReviews(limit = 5): Promise<ReviewRow[]> {
   return attachGuestProfiles(data || []);
 }
 
+export async function getReviewsForProperty(propertyId: string): Promise<ReviewRow[]> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('property_id', propertyId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return attachGuestProfiles(data || []);
+}
+
+async function syncPropertyRating(propertyId: string) {
+  const { data: allReviews, error } = await supabase
+    .from('reviews')
+    .select('rating')
+    .eq('property_id', propertyId);
+  if (error) throw error;
+
+  const count = allReviews?.length || 0;
+  const avg = count > 0 ? allReviews.reduce((s, r) => s + r.rating, 0) / count : 0;
+
+  await supabase
+    .from('properties')
+    .update({ rating: Math.round(avg * 10) / 10, review_count: count })
+    .eq('id', propertyId);
+}
+
+export async function addReview(propertyId: string, userId: string, rating: number, body: string) {
+  const { data, error } = await supabase
+    .from('reviews')
+    .insert({ property_id: propertyId, user_id: userId, rating, body })
+    .select()
+    .single();
+  if (error) throw error;
+  await syncPropertyRating(propertyId);
+  return data;
+}
+
+export async function deleteReview(id: string, propertyId: string) {
+  const { error } = await supabase.from('reviews').delete().eq('id', id);
+  if (error) throw error;
+  await syncPropertyRating(propertyId);
+}
+
 export async function getAllBookings(): Promise<DbBooking[]> {
   const { data, error } = await supabase
     .from('bookings')
