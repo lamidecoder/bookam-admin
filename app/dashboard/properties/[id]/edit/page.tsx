@@ -107,6 +107,13 @@ export default function EditPropertyPage() {
   }
 
   const removeImage = (i: number) => setImages((cur) => cur.filter((_, idx) => idx !== i));
+  const setAsMain = (i: number) =>
+    setImages((cur) => {
+      if (i === 0) return cur;
+      const picked = cur[i];
+      const rest = cur.filter((_, idx) => idx !== i);
+      return [picked, ...rest];
+    });
 
   async function handleFilesSelected(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -353,7 +360,7 @@ export default function EditPropertyPage() {
             {images.length > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
                 {images.map((img, i) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border" style={{ borderColor: '#F0EBF8' }}>
+                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border group" style={{ borderColor: '#F0EBF8' }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={img.url} alt="" className="w-full h-full object-cover" />
                     {img.uploading && (
@@ -368,6 +375,15 @@ export default function EditPropertyPage() {
                     )}
                     {i === 0 && !img.uploading && (
                       <span className="absolute bottom-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor: '#6B2D82', color: 'white' }}>MAIN</span>
+                    )}
+                    {i !== 0 && !img.uploading && (
+                      <button
+                        onClick={() => setAsMain(i)}
+                        className="absolute bottom-1 left-1 right-1 text-[10px] font-semibold py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ backgroundColor: 'rgba(0,0,0,0.65)', color: 'white' }}
+                      >
+                        Set as Main
+                      </button>
                     )}
                   </div>
                 ))}
