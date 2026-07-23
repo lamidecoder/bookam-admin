@@ -157,10 +157,11 @@ export async function createProperty(property: {
   caution_fee?: number;
   booking_policy?: string;
   images?: string[];
+  verified?: boolean;
 }) {
   const { data, error } = await supabase
     .from('properties')
-    .insert({ ...property, active: true, verified: false })
+    .insert({ ...property, active: true, verified: property.verified ?? false })
     .select()
     .single();
   if (error) throw error;

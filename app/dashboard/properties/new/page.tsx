@@ -18,6 +18,7 @@ export default function AddPropertyPage() {
   const [pricePerNight, setPricePerNight] = useState('');
   const [serviceFee, setServiceFee] = useState('');
   const [minStay, setMinStay] = useState(1);
+  const [verified, setVerified] = useState(false);
   const [cancellationFeePercent, setCancellationFeePercent] = useState(15);
   const [cautionFee, setCautionFee] = useState(0);
   const [bookingPolicy, setBookingPolicy] = useState('');
@@ -98,6 +99,7 @@ export default function AddPropertyPage() {
         caution_fee: cautionFee,
         booking_policy: bookingPolicy,
         images: images.map((img) => img.url),
+        verified,
       });
       router.push('/dashboard/properties');
     } catch (e) {
@@ -109,14 +111,34 @@ export default function AddPropertyPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-8">
-        <Link href="/dashboard/properties" className="text-gray-400 hover:text-gray-600">
-          <ArrowLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Add New Property</h1>
-          <p className="text-sm text-gray-500">Fill in all required details to list this space on Bookam.</p>
+      <div className="flex items-center justify-between gap-3 mb-8">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/properties" className="text-gray-400 hover:text-gray-600">
+            <ArrowLeft size={20} />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Add New Property</h1>
+            <p className="text-sm text-gray-500">Fill in all required details to list this space on Bookam.</p>
+          </div>
         </div>
+        <button
+          onClick={() => setVerified((v) => !v)}
+          className="flex items-center gap-2 px-3 py-2 rounded-full flex-shrink-0"
+          style={{ backgroundColor: verified ? '#FFF8E7' : '#F5F5F5' }}
+        >
+          <span className="text-xs font-semibold" style={{ color: verified ? '#C9A84C' : '#6B6478' }}>
+            {verified ? '✓ Verified' : 'Mark as Verified'}
+          </span>
+          <span
+            className="w-9 h-5 rounded-full relative transition-colors"
+            style={{ backgroundColor: verified ? '#C9A84C' : '#D1D5DB' }}
+          >
+            <span
+              className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all"
+              style={{ left: verified ? 18 : 2 }}
+            />
+          </span>
+        </button>
       </div>
 
       {errorMsg && (
