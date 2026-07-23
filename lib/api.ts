@@ -58,6 +58,8 @@ export type DbProperty = {
   house_rules: string[];
   min_stay: number;
   cancellation_fee_percent: number;
+  caution_fee: number;
+  booking_policy: string | null;
   weekend_enabled: boolean;
   weekend_rate: number | null;
   verified: boolean;
@@ -152,6 +154,8 @@ export async function createProperty(property: {
   house_rules?: string[];
   min_stay?: number;
   cancellation_fee_percent?: number;
+  caution_fee?: number;
+  booking_policy?: string;
   images?: string[];
 }) {
   const { data, error } = await supabase

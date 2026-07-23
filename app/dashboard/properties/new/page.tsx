@@ -19,6 +19,8 @@ export default function AddPropertyPage() {
   const [serviceFee, setServiceFee] = useState('');
   const [minStay, setMinStay] = useState(1);
   const [cancellationFeePercent, setCancellationFeePercent] = useState(15);
+  const [cautionFee, setCautionFee] = useState(0);
+  const [bookingPolicy, setBookingPolicy] = useState('');
   const [amenities, setAmenities] = useState<string[]>(['WiFi']);
   const [houseRules, setHouseRules] = useState<string[]>(['No smoking inside', 'Check in after 2:00 PM']);
   const [images, setImages] = useState<{ url: string; uploading: boolean }[]>([]);
@@ -93,6 +95,8 @@ export default function AddPropertyPage() {
         house_rules: houseRules,
         min_stay: minStay,
         cancellation_fee_percent: cancellationFeePercent,
+        caution_fee: cautionFee,
+        booking_policy: bookingPolicy,
         images: images.map((img) => img.url),
       });
       router.push('/dashboard/properties');
@@ -188,9 +192,33 @@ export default function AddPropertyPage() {
                 />
               </div>
             </div>
+            <div className="mt-4">
+              <label className="block text-xs font-bold text-gray-500 mb-2">REFUNDABLE CAUTION FEE (₦)</label>
+              <input
+                type="number"
+                value={cautionFee}
+                onChange={(e) => setCautionFee(Number(e.target.value))}
+                placeholder="0"
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">Refunded after checkout if the property is undamaged.</p>
+            </div>
             <p className="text-xs text-gray-400 mt-3">
               Cannot be zero — this fee is shown to guests on the property detail screen and booking summary before they pay.
             </p>
+            <div className="mt-5 pt-5 border-t" style={{ borderColor: '#F0EBF8' }}>
+              <label className="block text-xs font-bold text-gray-500 mb-2">BOOKING &amp; CANCELLATION POLICY</label>
+              <textarea
+                value={bookingPolicy}
+                onChange={(e) => setBookingPolicy(e.target.value)}
+                rows={4}
+                placeholder="e.g. Free cancellation up to 48 hours before check-in. No refunds for no-shows. Check-in from 2pm, check-out by 11am..."
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Shown to guests on this property&apos;s detail page — different owners have different policies.
+              </p>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
