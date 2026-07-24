@@ -6,6 +6,9 @@ import { ConfirmProvider } from "@/components/ConfirmProvider";
 export const metadata: Metadata = {
   title: "Bookam Admin",
   description: "Bookam booking management dashboard",
+  verification: {
+    google: "DxvIcdYQRKnz69xKeEnKQmsO5llga8Q2gV2K-qdJKBI",
+  },
 };
 
 export default function RootLayout({
