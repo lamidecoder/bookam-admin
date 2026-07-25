@@ -49,13 +49,44 @@ export async function POST(req: NextRequest) {
     { auth: { persistSession: false } }
   );
 
-  const { error } = await supabaseAdmin
+  const { data: booking, error } = await supabaseAdmin
     .from('bookings')
     .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
-    .eq('id', bookingId);
+    .eq('id', bookingId)
+    .select('user_id, properties(name)')
+    .single<{ user_id: string; properties: { name: string } | null }>();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Refund email - non-fatal, the refund itself already succeeded by
+  // this point regardless of whether this email goes out.
+  try {
+    const { data: guestProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', booking.user_id)
+      .maybeSingle();
+
+    if (guestProfile?.email) {
+      await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          to: guestProfile.email,
+          type: 'refund_processed',
+          firstName: guestProfile.full_name?.split(' ')[0],
+          propertyName: booking.properties?.name,
+          refundAmount,
+        }),
+      });
+    }
+  } catch (emailErr) {
+    console.warn('Could not send refund email:', emailErr);
   }
 
   return NextResponse.json({ success: true, message: 'Refund processed successfully.' });
