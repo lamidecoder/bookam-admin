@@ -37,8 +37,20 @@ export default function AdminLoginPage() {
 
     setLoading(true);
     try {
+      // Real lockout check, tracked server-side so it can't be reset
+      // just by refreshing the page or opening a new tab.
+      const { data: lockedMinutes } = await supabase.rpc('check_admin_lockout', { p_email: email });
+      if (lockedMinutes && lockedMinutes > 0) {
+        setError(`Too many failed attempts. Please try again in ${lockedMinutes} minute${lockedMinutes > 1 ? 's' : ''}.`);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (error) {
+        await supabase.rpc('record_admin_login_attempt', { p_email: email, p_success: false });
+        throw error;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -47,11 +59,13 @@ export default function AdminLoginPage() {
         .single();
 
       if (profile?.role !== 'admin') {
+        await supabase.rpc('record_admin_login_attempt', { p_email: email, p_success: false });
         await supabase.auth.signOut();
         setError(GENERIC_ERROR);
         return;
       }
 
+      await supabase.rpc('record_admin_login_attempt', { p_email: email, p_success: true });
       showToast(`Welcome back, ${profile?.full_name ?? 'Admin'}.`, 'success');
       router.push('/dashboard');
     } catch {
