@@ -21,9 +21,7 @@ function CancelBookingModal({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const feePercent = booking.properties?.cancellation_fee_percent ?? 15;
-  const fee = Math.round(Number(booking.total) * (feePercent / 100));
-  const refund = Number(booking.total) - fee;
+  const refund = Number(booking.total);
 
   async function confirm() {
     if (!reason) {
@@ -33,7 +31,7 @@ function CancelBookingModal({
     setSubmitting(true);
     setErrorMsg(null);
     try {
-      await adminCancelBooking(booking.id, fee);
+      await adminCancelBooking(booking.id);
       onCancelled();
     } catch (e) {
       setErrorMsg(errorMessage(e));
@@ -88,7 +86,6 @@ function CancelBookingModal({
             <p className="text-xs font-bold mb-3" style={{ color: '#6B2D82' }}>REFUND BREAKDOWN</p>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-gray-600">Amount Paid</span><span className="font-medium">₦{Number(booking.total).toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-red-600">Cancellation Fee ({feePercent}%)</span><span className="font-medium text-red-600">-₦{fee.toLocaleString()}</span></div>
               <div className="border-t pt-2 flex justify-between font-bold" style={{ borderColor: '#E0D2EE' }}>
                 <span>Refund Amount</span><span style={{ color: '#2E9E6B' }}>₦{refund.toLocaleString()}</span>
               </div>

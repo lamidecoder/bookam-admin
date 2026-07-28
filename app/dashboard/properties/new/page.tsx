@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Minus, Trash2, UploadCloud, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, UploadCloud, Loader2, X } from 'lucide-react';
 import { createProperty, errorMessage } from '@/lib/api';
 import { uploadToCloudinary, CLOUDINARY_CONFIGURED } from '@/lib/cloudinary';
 
@@ -17,11 +17,8 @@ export default function AddPropertyPage() {
   const [description, setDescription] = useState('');
   const [pricePerNight, setPricePerNight] = useState('');
   const [serviceFee, setServiceFee] = useState('');
-  const [minStay, setMinStay] = useState(1);
   const [verified, setVerified] = useState(false);
-  const [cancellationFeePercent, setCancellationFeePercent] = useState(15);
   const [cautionFee, setCautionFee] = useState(0);
-  const [bookingPolicy, setBookingPolicy] = useState('');
   const [amenities, setAmenities] = useState<string[]>(['WiFi']);
   const [houseRules, setHouseRules] = useState<string[]>(['No smoking inside', 'Check in after 2:00 PM']);
   const [images, setImages] = useState<{ url: string; uploading: boolean }[]>([]);
@@ -73,10 +70,6 @@ export default function AddPropertyPage() {
       setErrorMsg('Name, area, and nightly rate are required.');
       return;
     }
-    if (cancellationFeePercent <= 0) {
-      setErrorMsg('Cancellation fee cannot be zero — every booking on this platform requires one.');
-      return;
-    }
     if (images.some((img) => img.uploading)) {
       setErrorMsg('Please wait for photo uploads to finish before saving.');
       return;
@@ -94,10 +87,7 @@ export default function AddPropertyPage() {
         service_fee: Number(serviceFee.replace(/,/g, '') || 0),
         amenities,
         house_rules: houseRules,
-        min_stay: minStay,
-        cancellation_fee_percent: cancellationFeePercent,
         caution_fee: cautionFee,
-        booking_policy: bookingPolicy,
         images: images.map((img) => img.url),
         verified,
       });
@@ -195,25 +185,6 @@ export default function AddPropertyPage() {
                 <input value={serviceFee} onChange={(e) => setServiceFee(e.target.value)} placeholder="0.00" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">MINIMUM STAY (NIGHTS)</label>
-                <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200">
-                  <button onClick={() => setMinStay((n) => Math.max(1, n - 1))}><Minus size={14} className="text-gray-500" /></button>
-                  <span className="font-semibold">{minStay}</span>
-                  <button onClick={() => setMinStay((n) => n + 1)}><Plus size={14} className="text-gray-500" /></button>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">CANCELLATION FEE (%)</label>
-                <input
-                  type="number"
-                  value={cancellationFeePercent}
-                  onChange={(e) => setCancellationFeePercent(Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm"
-                />
-              </div>
-            </div>
             <div className="mt-4">
               <label className="block text-xs font-bold text-gray-500 mb-2">REFUNDABLE CAUTION FEE (₦)</label>
               <input
@@ -224,22 +195,6 @@ export default function AddPropertyPage() {
                 className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm"
               />
               <p className="text-xs text-gray-400 mt-1">Refunded after checkout if the property is undamaged.</p>
-            </div>
-            <p className="text-xs text-gray-400 mt-3">
-              Cannot be zero — this fee is shown to guests on the property detail screen and booking summary before they pay.
-            </p>
-            <div className="mt-5 pt-5 border-t" style={{ borderColor: '#F0EBF8' }}>
-              <label className="block text-xs font-bold text-gray-500 mb-2">BOOKING &amp; CANCELLATION POLICY</label>
-              <textarea
-                value={bookingPolicy}
-                onChange={(e) => setBookingPolicy(e.target.value)}
-                rows={4}
-                placeholder="e.g. Free cancellation up to 48 hours before check-in. No refunds for no-shows. Check-in from 2pm, check-out by 11am..."
-                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm resize-none"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Shown to guests on this property&apos;s detail page — different owners have different policies.
-              </p>
             </div>
           </div>
 

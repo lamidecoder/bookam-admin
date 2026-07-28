@@ -53,8 +53,6 @@ export default function PricingPage() {
   const [saving, setSaving] = useState(false);
 
   const [pricePerNight, setPricePerNight] = useState('');
-  const [minStay, setMinStay] = useState(1);
-  const [cancellationFeePercent, setCancellationFeePercent] = useState('');
   const [weekendEnabled, setWeekendEnabled] = useState(false);
   const [weekendRate, setWeekendRate] = useState('');
 
@@ -85,8 +83,6 @@ export default function PricingPage() {
     if (!selectedProperty) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount; repo has no Suspense/use() data layer yet
     setPricePerNight(String(selectedProperty.price_per_night ?? ''));
-    setMinStay(selectedProperty.min_stay ?? 1);
-    setCancellationFeePercent(String(selectedProperty.cancellation_fee_percent ?? 0));
     setWeekendEnabled(selectedProperty.weekend_enabled ?? false);
     setWeekendRate(selectedProperty.weekend_rate != null ? String(selectedProperty.weekend_rate) : '');
   }, [selectedProperty]);
@@ -113,7 +109,6 @@ export default function PricingPage() {
   async function handleSavePricing() {
     if (!propertyId || !selectedProperty) return;
     const price = Number(pricePerNight);
-    const fee = Number(cancellationFeePercent);
     if (!price || price <= 0) {
       showToast('Enter a valid base nightly rate.', 'error');
       return;
@@ -129,13 +124,11 @@ export default function PricingPage() {
         price_per_night: price,
         weekend_enabled: weekendEnabled,
         weekend_rate: weekendEnabled ? Number(weekendRate) : null,
-        min_stay: minStay || 1,
-        cancellation_fee_percent: fee || 0,
       });
       setProperties((cur) =>
         cur.map((p) =>
           p.id === propertyId
-            ? { ...p, price_per_night: price, weekend_enabled: weekendEnabled, weekend_rate: weekendEnabled ? Number(weekendRate) : null, min_stay: minStay || 1, cancellation_fee_percent: fee || 0 }
+            ? { ...p, price_per_night: price, weekend_enabled: weekendEnabled, weekend_rate: weekendEnabled ? Number(weekendRate) : null }
             : p
         )
       );
@@ -319,33 +312,6 @@ export default function PricingPage() {
                 </div>
               )}
 
-              <label className="block text-sm text-gray-600 mb-2">Minimum Stay (Nights)</label>
-              <div className="flex items-center gap-3 mb-3">
-                <button
-                  onClick={() => setMinStay((v) => Math.max(1, v - 1))}
-                  className="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 font-bold flex items-center justify-center flex-shrink-0"
-                >
-                  −
-                </button>
-                <div className="flex-1 py-2 rounded-lg bg-gray-50 border border-gray-200 text-sm text-center font-semibold">{minStay}</div>
-                <button
-                  onClick={() => setMinStay((v) => v + 1)}
-                  className="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 font-bold flex items-center justify-center flex-shrink-0"
-                >
-                  +
-                </button>
-              </div>
-
-              <label className="block text-sm text-gray-600 mb-2 mt-4">Cancellation Fee (%)</label>
-              <input
-                type="number"
-                min={0}
-                max={100}
-                value={cancellationFeePercent}
-                onChange={(e) => setCancellationFeePercent(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm mb-6"
-              />
-
               <button
                 onClick={handleSavePricing}
                 disabled={saving}
@@ -437,10 +403,6 @@ export default function PricingPage() {
                   <div className="flex justify-between">
                     <span className="text-gray-500">Weekend Rate</span>
                     <span className="font-semibold text-gray-900">{weekendEnabled ? `₦${Number(weekendRate || 0).toLocaleString()}` : '—'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Min Stay</span>
-                    <span className="font-semibold text-gray-900">{minStay} Night{minStay !== 1 ? 's' : ''}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Special Dates Active</span>

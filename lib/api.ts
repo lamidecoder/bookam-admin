@@ -56,10 +56,7 @@ export type DbProperty = {
   images: string[];
   amenities: string[];
   house_rules: string[];
-  min_stay: number;
-  cancellation_fee_percent: number;
   caution_fee: number;
-  booking_policy: string | null;
   weekend_enabled: boolean;
   weekend_rate: number | null;
   verified: boolean;
@@ -152,10 +149,7 @@ export async function createProperty(property: {
   service_fee?: number;
   amenities?: string[];
   house_rules?: string[];
-  min_stay?: number;
-  cancellation_fee_percent?: number;
   caution_fee?: number;
-  booking_policy?: string;
   images?: string[];
   verified?: boolean;
 }) {
@@ -209,8 +203,8 @@ export function subscribeToAllProperties(callback: (properties: DbProperty[]) =>
 }
 
 // ============================================
-// PRICING (price_per_night/service_fee/min_stay/cancellation_fee_percent
-// live on properties; weekend + special dates are the additive migration)
+// PRICING (price_per_night/service_fee/caution_fee live on properties;
+// weekend + special dates are the additive migration)
 // ============================================
 export async function updatePricing(
   propertyId: string,
@@ -218,8 +212,6 @@ export async function updatePricing(
     price_per_night: number;
     weekend_enabled: boolean;
     weekend_rate: number | null;
-    min_stay: number;
-    cancellation_fee_percent: number;
   }
 ) {
   return updateProperty(propertyId, pricing);
@@ -486,10 +478,10 @@ export async function getBookingById(id: string): Promise<DbBooking> {
   return withProfile;
 }
 
-export async function adminCancelBooking(bookingId: string, cancellationFee: number): Promise<DbBooking> {
+export async function adminCancelBooking(bookingId: string): Promise<DbBooking> {
   const { data, error } = await supabase
     .from('bookings')
-    .update({ status: 'cancelled', cancellation_fee: cancellationFee, cancelled_at: new Date().toISOString() })
+    .update({ status: 'cancelled', cancellation_fee: 0, cancelled_at: new Date().toISOString() })
     .eq('id', bookingId)
     .select()
     .single();

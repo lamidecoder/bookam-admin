@@ -25,10 +25,7 @@ export default function EditPropertyPage() {
   const [area, setArea] = useState('');
   const [description, setDescription] = useState('');
   const [pricePerNight, setPricePerNight] = useState('');
-  const [minStay, setMinStay] = useState(1);
-  const [cancellationFeePercent, setCancellationFeePercent] = useState(15);
   const [cautionFee, setCautionFee] = useState(0);
-  const [bookingPolicy, setBookingPolicy] = useState('');
   const [images, setImages] = useState<{ url: string; uploading: boolean }[]>([]);
   const [amenities, setAmenities] = useState<string[]>([]);
   const [houseRules, setHouseRules] = useState<string[]>([]);
@@ -131,10 +128,7 @@ export default function EditPropertyPage() {
         setArea(p.area);
         setDescription(p.description || '');
         setPricePerNight(String(p.price_per_night));
-        setMinStay(p.min_stay || 1);
-        setCancellationFeePercent(p.cancellation_fee_percent || 15);
         setCautionFee(p.caution_fee || 0);
-        setBookingPolicy(p.booking_policy || '');
         setActive(p.active);
         setVerified(p.verified);
         setImages((p.images || []).map((url) => ({ url, uploading: false })));
@@ -152,10 +146,6 @@ export default function EditPropertyPage() {
   const [saved, setSaved] = useState(false);
 
   async function saveChanges() {
-    if (cancellationFeePercent <= 0) {
-      setErrorMsg('Cancellation fee cannot be zero — every booking on this platform requires one.');
-      return;
-    }
     if (images.some((img) => img.uploading)) {
       setErrorMsg('Please wait for photo uploads to finish before saving.');
       return;
@@ -174,10 +164,7 @@ export default function EditPropertyPage() {
         area,
         description,
         price_per_night: Number(pricePerNight.replace(/,/g, '')),
-        min_stay: minStay,
-        cancellation_fee_percent: cancellationFeePercent,
         caution_fee: cautionFee,
-        booking_policy: bookingPolicy,
         images: images.map((img) => img.url),
         amenities,
         house_rules: houseRules,
@@ -273,19 +260,11 @@ export default function EditPropertyPage() {
           </div>
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
-            <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>Pricing &amp; Policy</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>Pricing</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">PRICE PER NIGHT (₦)</label>
                 <input value={pricePerNight} onChange={(e) => setPricePerNight(e.target.value)} className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">MIN STAY (NIGHTS)</label>
-                <input type="number" value={minStay} onChange={(e) => setMinStay(Number(e.target.value))} className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">CANCELLATION FEE (%)</label>
-                <input type="number" value={cancellationFeePercent} onChange={(e) => setCancellationFeePercent(Number(e.target.value))} className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">REFUNDABLE CAUTION FEE (₦)</label>
@@ -296,19 +275,6 @@ export default function EditPropertyPage() {
             <p className="text-xs text-gray-400 mt-3">
               For weekend pricing and special-date overrides, use the <a href="/dashboard/pricing" className="underline" style={{ color: '#6B2D82' }}>Pricing Control</a> page.
             </p>
-            <div className="mt-5 pt-5 border-t" style={{ borderColor: '#F0EBF8' }}>
-              <label className="block text-xs font-bold text-gray-500 mb-2">BOOKING &amp; CANCELLATION POLICY</label>
-              <textarea
-                value={bookingPolicy}
-                onChange={(e) => setBookingPolicy(e.target.value)}
-                rows={4}
-                placeholder="e.g. Free cancellation up to 48 hours before check-in. No refunds for no-shows. Check-in from 2pm, check-out by 11am..."
-                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm resize-none"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Shown to guests on this property&apos;s detail page. Different owners have different policies — set this per property rather than assuming a platform-wide rule.
-              </p>
-            </div>
           </div>
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
