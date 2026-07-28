@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutGrid, Building2, Tag, Calendar, ClipboardCheck,
-  BarChart3, FileText, Users, LogOut, X,
+  BarChart3, FileText, Users, LogOut, X, Settings,
 } from 'lucide-react';
 import { BookamLogo } from './BookamLogo';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Transactions', href: '/dashboard/transactions', icon: FileText },
   { label: 'Users', href: '/dashboard/users', icon: Users },
+  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 type Props = {

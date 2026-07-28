@@ -193,6 +193,30 @@ export async function deleteProperty(id: string) {
   if (error) throw error;
 }
 
+/**
+ * Deletes every booking in the database. Deliberately no safety
+ * guard beyond the confirmation UI requires - this exists purely for
+ * clearing out test data, not something a real production platform
+ * would ever call once live with real guests.
+ */
+export async function deleteAllBookings() {
+  const { error } = await supabase.from('bookings').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  if (error) throw error;
+}
+
+/**
+ * Deletes every property in the database. Same as above - for
+ * clearing test data, not a real operational tool. Deletes bookings
+ * tied to those properties first, since the database doesn't allow
+ * a property to be removed while bookings still reference it.
+ */
+export async function deleteAllProperties() {
+  const { error: bookingsError } = await supabase.from('bookings').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  if (bookingsError) throw bookingsError;
+  const { error } = await supabase.from('properties').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  if (error) throw error;
+}
+
 export function subscribeToAllProperties(callback: (properties: DbProperty[]) => void) {
   return supabase
     .channel('admin:properties')
