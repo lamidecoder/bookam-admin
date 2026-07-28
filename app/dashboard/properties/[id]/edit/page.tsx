@@ -25,6 +25,7 @@ export default function EditPropertyPage() {
   const [area, setArea] = useState('');
   const [description, setDescription] = useState('');
   const [pricePerNight, setPricePerNight] = useState('');
+  const [serviceFee, setServiceFee] = useState('');
   const [cautionFee, setCautionFee] = useState(0);
   const [images, setImages] = useState<{ url: string; uploading: boolean }[]>([]);
   const [amenities, setAmenities] = useState<string[]>([]);
@@ -128,6 +129,7 @@ export default function EditPropertyPage() {
         setArea(p.area);
         setDescription(p.description || '');
         setPricePerNight(String(p.price_per_night));
+        setServiceFee(p.service_fee != null ? String(p.service_fee) : '');
         setCautionFee(p.caution_fee || 0);
         setActive(p.active);
         setVerified(p.verified);
@@ -164,6 +166,7 @@ export default function EditPropertyPage() {
         area,
         description,
         price_per_night: Number(pricePerNight.replace(/,/g, '')),
+        service_fee: Number(serviceFee.replace(/,/g, '') || 0),
         caution_fee: cautionFee,
         images: images.map((img) => img.url),
         amenities,
@@ -261,10 +264,14 @@ export default function EditPropertyPage() {
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>
             <h3 className="text-lg font-bold mb-5" style={{ color: '#6B2D82' }}>Pricing</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">PRICE PER NIGHT (₦)</label>
                 <input value={pricePerNight} onChange={(e) => setPricePerNight(e.target.value)} className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2">SERVICE FEE (₦)</label>
+                <input value={serviceFee} onChange={(e) => setServiceFee(e.target.value)} placeholder="0.00" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">REFUNDABLE CAUTION FEE (₦)</label>
