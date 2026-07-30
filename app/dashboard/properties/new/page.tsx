@@ -19,6 +19,7 @@ export default function AddPropertyPage() {
   const [serviceFee, setServiceFee] = useState('');
   const [verified, setVerified] = useState(false);
   const [cautionFee, setCautionFee] = useState(0);
+  const [bookingPolicy, setBookingPolicy] = useState('');
   const [amenities, setAmenities] = useState<string[]>(['WiFi']);
   const [houseRules, setHouseRules] = useState<string[]>(['No smoking inside', 'Check in after 2:00 PM']);
   const [images, setImages] = useState<{ url: string; uploading: boolean }[]>([]);
@@ -88,6 +89,7 @@ export default function AddPropertyPage() {
         amenities,
         house_rules: houseRules,
         caution_fee: cautionFee,
+        booking_policy: bookingPolicy,
         images: images.map((img) => img.url),
         verified,
       });
@@ -195,6 +197,19 @@ export default function AddPropertyPage() {
                 className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm"
               />
               <p className="text-xs text-gray-400 mt-1">Refunded after checkout if the property is undamaged.</p>
+            </div>
+            <div className="mt-5 pt-5 border-t" style={{ borderColor: '#F0EBF8' }}>
+              <label className="block text-xs font-bold text-gray-500 mb-2">BOOKING &amp; CANCELLATION POLICY</label>
+              <textarea
+                value={bookingPolicy}
+                onChange={(e) => setBookingPolicy(e.target.value)}
+                rows={4}
+                placeholder="e.g. Free cancellation up to 48 hours before check-in. No refunds for no-shows. Check-in from 2pm, check-out by 11am..."
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Shown to guests on this property&apos;s detail page. Different owners have different policies — set this per property rather than assuming a platform-wide rule.
+              </p>
             </div>
           </div>
 

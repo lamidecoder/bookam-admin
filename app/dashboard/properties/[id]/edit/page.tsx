@@ -27,6 +27,7 @@ export default function EditPropertyPage() {
   const [pricePerNight, setPricePerNight] = useState('');
   const [serviceFee, setServiceFee] = useState('');
   const [cautionFee, setCautionFee] = useState(0);
+  const [bookingPolicy, setBookingPolicy] = useState('');
   const [images, setImages] = useState<{ url: string; uploading: boolean }[]>([]);
   const [amenities, setAmenities] = useState<string[]>([]);
   const [houseRules, setHouseRules] = useState<string[]>([]);
@@ -131,6 +132,7 @@ export default function EditPropertyPage() {
         setPricePerNight(String(p.price_per_night));
         setServiceFee(p.service_fee != null ? String(p.service_fee) : '');
         setCautionFee(p.caution_fee || 0);
+        setBookingPolicy(p.booking_policy || '');
         setActive(p.active);
         setVerified(p.verified);
         setImages((p.images || []).map((url) => ({ url, uploading: false })));
@@ -168,6 +170,7 @@ export default function EditPropertyPage() {
         price_per_night: Number(pricePerNight.replace(/,/g, '')),
         service_fee: Number(serviceFee.replace(/,/g, '') || 0),
         caution_fee: cautionFee,
+        booking_policy: bookingPolicy,
         images: images.map((img) => img.url),
         amenities,
         house_rules: houseRules,
@@ -282,6 +285,19 @@ export default function EditPropertyPage() {
             <p className="text-xs text-gray-400 mt-3">
               For weekend pricing and special-date overrides, use the <a href="/dashboard/pricing" className="underline" style={{ color: '#6B2D82' }}>Pricing Control</a> page.
             </p>
+            <div className="mt-5 pt-5 border-t" style={{ borderColor: '#F0EBF8' }}>
+              <label className="block text-xs font-bold text-gray-500 mb-2">BOOKING &amp; CANCELLATION POLICY</label>
+              <textarea
+                value={bookingPolicy}
+                onChange={(e) => setBookingPolicy(e.target.value)}
+                rows={4}
+                placeholder="e.g. Free cancellation up to 48 hours before check-in. No refunds for no-shows. Check-in from 2pm, check-out by 11am..."
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-sm resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Shown to guests on this property&apos;s detail page. Different owners have different policies — set this per property rather than assuming a platform-wide rule.
+              </p>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#F0EBF8' }}>

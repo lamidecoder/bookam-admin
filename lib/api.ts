@@ -57,6 +57,7 @@ export type DbProperty = {
   amenities: string[];
   house_rules: string[];
   caution_fee: number;
+  booking_policy: string | null;
   weekend_enabled: boolean;
   weekend_rate: number | null;
   verified: boolean;
@@ -150,6 +151,7 @@ export async function createProperty(property: {
   amenities?: string[];
   house_rules?: string[];
   caution_fee?: number;
+  booking_policy?: string;
   images?: string[];
   verified?: boolean;
 }) {
