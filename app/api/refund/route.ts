@@ -1,8 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function POST(req: NextRequest) {
+  // Real authentication check - this route previously had none at all,
+  // meaning anyone who knew the URL could POST directly and trigger a
+  // real Paystack refund of any amount against any booking reference,
+  // with no login required. Verifies the caller's Supabase access
+  // token is valid AND belongs to a user whose profile has
+  // role='admin' - both checks required, rejecting the request
+  // entirely before touching Paystack or the database if either fails.
+  const authHeader = req.headers.get('authorization');
+  const token = authHeader?.replace('Bearer ', '');
+  if (!token) {
+    return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 });
+  }
+
+  const authClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const { data: { user }, error: authError } = await authClient.auth.getUser(token);
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 });
+  }
+
+  const { data: callerProfile } = await authClient
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (callerProfile?.role !== 'admin') {
+    return NextResponse.json({ error: 'Not authorized.' }, { status: 403 });
+  }
+
   const { bookingId, paystackRef, refundAmount, reason } = await req.json();
+
+  // Real input validation - previously bookingId and refundAmount were
+  // accepted with no checks at all.
+  if (typeof bookingId !== 'string' || !UUID_RE.test(bookingId)) {
+    return NextResponse.json({ error: 'Invalid booking ID.' }, { status: 400 });
+  }
+  if (typeof refundAmount !== 'number' || !Number.isFinite(refundAmount) || refundAmount <= 0) {
+    return NextResponse.json({ error: 'Invalid refund amount.' }, { status: 400 });
+  }
 
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
   if (!secretKey) {

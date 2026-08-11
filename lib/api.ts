@@ -584,9 +584,15 @@ export async function processRefund(params: {
   refundAmount: number;
   reason: string;
 }): Promise<{ success: boolean; message?: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated.');
+
   const res = await fetch('/api/refund', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
     body: JSON.stringify(params),
   });
   const json = await res.json();
